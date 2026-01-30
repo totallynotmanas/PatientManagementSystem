@@ -159,6 +159,3 @@ $RECYCLE.BIN/
 # Keep these files in the repo
 !.env.example
 !.gitignore
-!seed_data.sql
-!schema.sql
-!rls_policies.sql
