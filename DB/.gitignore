@@ -1,0 +1,164 @@
+# Environment Variables (NEVER commit credentials)
+.env
+.env.local
+.env.*.local
+.env.production.local
+.env.development.local
+
+# Supabase Credentials (SENSITIVE!)
+*.env.local
+.supabase/
+
+# Database Backups
+*.sql.bak
+*.backup
+*.dump
+*.tar.gz
+*.zip
+
+# IDE & Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# Node.js (if used for migrations/scripts)
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# Python (if used for migrations/scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Temporary Files
+*.tmp
+*.temp
+*.log
+*.out
+
+# OS Files
+.DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+*~
+Thumbs.db
+
+# Database Lock Files
+*.lock
+
+# Crash Dumps
+crash_dump
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+
+# Build Outputs
+dist/
+build/
+
+# Personal Notes
+notes.txt
+TODO.md
+personal_notes/
+
+# Sensitive Configuration (if any)
+secrets/
+private_keys/
+certificates/
+
+# SQL Execution Logs
+query_log.txt
+
+# Backup Migration Files
+migrations_backup/
+
+# Local Testing Files
+test_*.sql
+local_*.sql
+dev_*.sql
+
+# IDE Temp Files
+.swiftpm/
+xcuserdata/
+*.xcworkspace/xcuserdata/
+
+# Yarn Berry files
+.yarn/cache/
+.yarn/unplugged/
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# pnpm
+pnpm-lock.yaml
+
+# Rush JS
+.rush/
+
+# macOS
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+.Trash-*/
+
+# Archives
+*.7z
+*.rar
+*.tar
+*.tar.bz2
+*.tgz
+*.zip
+
+# Compiled/Cache
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+
+# Keep these files in the repo
+!.env.example
+!.gitignore
+!seed_data.sql
+!schema.sql
+!rls_policies.sql
