@@ -1,2 +1,5 @@
 .env.local
 .env
+# Ignore Maven / Gradle build artifacts
+**/target/
+backend/Backend/target/

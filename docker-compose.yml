@@ -15,7 +15,7 @@ services:
     networks:
       - health_net
 
-  # 2. Adminer (The Lightweight Alternative)
+  # 2. Adminer (Database GUI)
   adminer:
     image: adminer
     container_name: secure_health_adminer
@@ -25,7 +25,7 @@ services:
     networks:
       - health_net
 
-  # 3. Redis
+  # 3. Redis (Active Defense)
   redis_cache:
     image: redis:alpine
     container_name: secure_health_redis
@@ -35,6 +35,27 @@ services:
     command: redis-server --save 60 1 --loglevel warning
     volumes:
       - redis_data:/data
+    networks:
+      - health_net
+
+  # 4. JAVA BACKEND (The Service you were missing!)
+  backend_api:
+    build: ./backend             # Points to your backend folder
+    container_name: secure_health_api
+    restart: always
+    ports:
+      - "8081:8080"              # Maps localhost:8081 -> Container:8080
+    environment:
+      # Connect to Postgres container
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/healthcare_auth_db
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      # Connect to Redis container
+      SPRING_DATA_REDIS_HOST: redis_cache
+      SPRING_DATA_REDIS_PORT: 6379
+    depends_on:
+      - postgres_db
+      - redis_cache
     networks:
       - health_net
 
