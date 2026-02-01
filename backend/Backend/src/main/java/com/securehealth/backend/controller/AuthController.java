@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -39,17 +40,21 @@ public class AuthController {
      * @return 201 Created if successful, or 400 Bad Request if validation fails.
      */
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody RegistrationRequest request) {
+    public ResponseEntity<Map<String, String>> registerUser(@Valid @RequestBody RegistrationRequest request) {
         try {
             authService.registerUser(
                     request.getEmail(),
                     request.getPassword(),
                     request.getRole());
-            return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", "User registered successfully");
+            return ResponseEntity.status(HttpStatus.CREATED).body(resp);
 
         } catch (RuntimeException e) {
             // In a real app, use a Global Exception Handler instead of try-catch here
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
         }
     }
 
@@ -58,17 +63,19 @@ public class AuthController {
      * Endpoint: POST /api/auth/login
      */
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<Map<String, Object>> loginUser(@Valid @RequestBody LoginRequest request) {
         try {
             Login user = authService.authenticateUser(request.getEmail(), request.getPassword());
-            Map<String, Object> resp = Map.of(
-                    "message", "Login successful",
-                    "email", user.getEmail(),
-                    "role", user.getRole());
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("message", "Login successful");
+            resp.put("email", user.getEmail());
+            resp.put("role", user.getRole());
             return ResponseEntity.ok(resp);
 
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(resp);
         }
     }
 }

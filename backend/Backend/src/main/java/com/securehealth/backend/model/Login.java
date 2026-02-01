@@ -78,4 +78,13 @@ public class Login {
      */
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    // Compatibility methods for tests expecting snake_case naming
+    public Long getUser_id() {
+        return userId;
+    }
+
+    public void setUser_id(Long userId) {
+        this.userId = userId;
+    }
 }

@@ -18,4 +18,9 @@ public class LoginRequest {
     @NotBlank(message = "Password is required")
     @Size(min = 12, message = "Password must be at least 12 characters long")
     private String password;
+
+    public LoginRequest(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
 }

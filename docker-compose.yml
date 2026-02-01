@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data_clean:/var/lib/postgresql/data
     networks:
       - health_net
 
@@ -40,11 +40,11 @@ services:
 
   # 4. JAVA BACKEND (The Service you were missing!)
   backend_api:
-    build: ./backend             # Points to your backend folder
+    build: ./backend # Points to your backend folder
     container_name: secure_health_api
     restart: always
     ports:
-      - "8081:8080"              # Maps localhost:8081 -> Container:8080
+      - "8081:8080" # Maps localhost:8081 -> Container:8080
     environment:
       # Connect to Postgres container
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres_db:5432/healthcare_auth_db
@@ -65,4 +65,5 @@ networks:
 
 volumes:
   postgres_data:
+  postgres_data_clean:
   redis_data:
