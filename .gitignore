@@ -3,3 +3,4 @@
 # Ignore Maven / Gradle build artifacts
 **/target/
 backend/Backend/target/
+./idea/
