@@ -31,6 +31,7 @@ public class Login {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
+
     /**
      * User's unique email address.
      * Used as the username for login.
@@ -38,12 +39,28 @@ public class Login {
     @Column(unique = true, nullable = false)
     private String email;
 
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     /**
      * Securely hashed password (Argon2).
      * <p><b>SECURITY WARNING:</b> Never store plaintext passwords here.</p>
      */
     @Column(nullable = false)
     private String passwordHash;
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
 
     /**
      * The user's role in the system.
@@ -87,4 +104,13 @@ public class Login {
     public void setUser_id(Long userId) {
         this.userId = userId;
     }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
 }
