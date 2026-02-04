@@ -108,7 +108,7 @@ class LoginRepositoryTest {
         entityManager.flush();
 
         // Assert
-        assertNotNull(savedUser.getUser_id());
+        assertNotNull(savedUser.getUserId());
         assertEquals("newuser@example.com", savedUser.getEmail());
         assertTrue(loginRepository.existsByEmail("newuser@example.com"));
     }
@@ -133,7 +133,7 @@ class LoginRepositoryTest {
     @Test
     void testDeleteLogin() {
         // Act
-        loginRepository.deleteById(testUser.getUser_id());
+        loginRepository.deleteById(testUser.getUserId());
         entityManager.flush();
 
         // Assert
@@ -182,6 +182,6 @@ class LoginRepositoryTest {
         // Assert
         assertTrue(found1.isPresent());
         assertTrue(found2.isPresent());
-        assertNotEquals(found1.get().getUser_id(), found2.get().getUser_id());
+        assertNotEquals(found1.get().getUserId(), found2.get().getUserId());
     }
 }

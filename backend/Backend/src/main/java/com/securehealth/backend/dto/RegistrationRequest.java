@@ -5,7 +5,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Data Transfer Object (DTO) for User Registration.
@@ -18,6 +20,8 @@ import lombok.Data;
  * @author Manas
  */
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class RegistrationRequest {
 
     /**
@@ -38,14 +42,7 @@ public class RegistrationRequest {
 
     /**
      * The desired role.
-     * <p>Validation: Cannot be null.</p>
      */
     @NotNull(message = "Role is required")
     private Role role;
-
-    public RegistrationRequest(String email, String password, Role role) {
-        this.email = email;
-        this.password = password;
-        this.role = role;
-    }
 }

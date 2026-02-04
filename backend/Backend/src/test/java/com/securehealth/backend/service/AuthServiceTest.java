@@ -38,7 +38,7 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         testUser = new Login();
-        testUser.setUser_id(1L);
+        testUser.setUserId(1L);
         testUser.setEmail("test@example.com");
         testUser.setPasswordHash("hashedPassword123");
         testUser.setRole(Role.PATIENT);
