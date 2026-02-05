@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
-    Menu, X, Home, Users, FileText, Settings, LogOut,
+    Menu, X, Home, Users, FileText, LogOut,
     Activity, Calendar, Shield, Upload, Search, Bell, ChevronDown,
-    Beaker, Pill, FileBarChart
+    Pill, LayoutDashboard, MessageSquare
 } from 'lucide-react';
 
 const DashboardLayout = ({ role, userName = "User" }) => {
@@ -26,20 +26,23 @@ const DashboardLayout = ({ role, userName = "User" }) => {
         switch (role) {
             case 'doctor':
                 return [
-                    ...common,
-                    { label: 'Patients', icon: Users, path: `/dashboard/${role}/patients` },
-                    { label: 'Appointments', icon: Calendar, path: `/dashboard/${role}/appointments` },
-                    { label: 'Lab Results', icon: Beaker, path: `/dashboard/${role}/labs` },
-                    { label: 'Prescriptions', icon: Pill, path: `/dashboard/${role}/prescriptions` },
-                    { label: 'Reports', icon: FileBarChart, path: `/dashboard/${role}/reports` },
-                    { label: 'Profile', icon: Settings, path: `/dashboard/${role}/profile` },
+                    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/doctor' },
+                    { icon: Users, label: 'Patients', path: '/dashboard/doctor/patients' },
+                    { icon: Calendar, label: 'Appointments', path: '/dashboard/doctor/appointments' },
+                    { icon: Activity, label: 'Lab Results', path: '/dashboard/doctor/labs' },
+                    { icon: Pill, label: 'Prescriptions', path: '/dashboard/doctor/prescriptions' },
+                    { icon: FileText, label: 'Reports', path: '/dashboard/doctor/reports' },
+                    { icon: MessageSquare, label: 'Messages', path: '/dashboard/doctor/messages' },
                 ];
-            case 'parent':
+            case 'patient':
                 return [
-                    ...common,
-                    { label: 'Children', icon: Users, path: `/dashboard/${role}/children` },
-                    { label: 'Appointments', icon: Calendar, path: `/dashboard/${role}/appointments` },
+                    { icon: LayoutDashboard, label: 'Overview', path: '/dashboard/patient' },
+                    { icon: FileText, label: 'Medical History', path: '/dashboard/patient/history' },
+                    { icon: Calendar, label: 'Appointments', path: '/dashboard/patient/appointments' },
+                    { icon: Activity, label: 'Lab Results', path: '/dashboard/patient/labs' },
+                    { icon: Pill, label: 'Medications', path: '/dashboard/patient/prescriptions' },
                 ];
+
             case 'nurse':
                 return [
                     ...common,

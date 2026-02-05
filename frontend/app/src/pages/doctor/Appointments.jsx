@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Calendar, Clock, User, AlertCircle, LayoutGrid, List } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, User, AlertCircle, LayoutGrid, List, Columns } from 'lucide-react';
 import AppointmentCalendar from '../../components/AppointmentCalendar';
+import SchedulerView from '../../components/SchedulerView';
+import AppointmentSidePanel from '../../components/AppointmentSidePanel';
 import Card from '../../components/common/Card';
 import Badge from '../../components/common/Badge';
 import Button from '../../components/common/Button';
@@ -9,10 +11,17 @@ import { mockAppointments } from '../../mocks/appointments';
 
 const Appointments = () => {
     const [activeTab, setActiveTab] = useState('upcoming');
-    const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
+    const [viewMode, setViewMode] = useState('calendar'); // 'list', 'calendar' (month), 'day' (scheduler)
     const [appointments, setAppointments] = useState(mockAppointments);
-    const [cancelModalOpen, setCancelModalOpen] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(new Date()); // Shared date state
+
+    // Side Panel State
     const [selectedAppointment, setSelectedAppointment] = useState(null);
+    const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
+
+    // Cancel Modal State
+    const [cancelModalOpen, setCancelModalOpen] = useState(false);
+    const [apptToCancel, setApptToCancel] = useState(null);
 
     const filteredAppointments = appointments.filter(appt => {
         if (activeTab === 'upcoming') return appt.status !== 'Cancelled' && appt.status !== 'Completed';
@@ -20,16 +29,33 @@ const Appointments = () => {
         return true;
     });
 
-    const handleCancelClick = (appt) => {
+    const handleAppointmentClick = (appt) => {
         setSelectedAppointment(appt);
+        setIsSidePanelOpen(true);
+    };
+
+    const handleSidePanelAction = (action) => {
+        console.log('Action:', action, selectedAppointment);
+        if (action === 'cancel') {
+            setApptToCancel(selectedAppointment);
+            setCancelModalOpen(true);
+            setIsSidePanelOpen(false);
+        } else {
+            alert(`${action} triggered for ${selectedAppointment.patientName}`);
+        }
+    };
+
+    const handleCancelClick = (appt) => {
+        setApptToCancel(appt);
         setCancelModalOpen(true);
     };
 
     const confirmCancel = () => {
         setAppointments(appointments.map(a =>
-            a.id === selectedAppointment.id ? { ...a, status: 'Cancelled' } : a
+            a.id === apptToCancel.id ? { ...a, status: 'Cancelled' } : a
         ));
         setCancelModalOpen(false);
+        setApptToCancel(null);
         setSelectedAppointment(null);
     };
 
@@ -40,7 +66,7 @@ const Appointments = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 relative">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <h2 className="text-2xl font-bold text-gray-800">Appointments</h2>
                 <div className="flex items-center space-x-3">
@@ -55,19 +81,34 @@ const Appointments = () => {
                         <button
                             onClick={() => setViewMode('calendar')}
                             className={`p-2 rounded-md transition-all ${viewMode === 'calendar' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-                            title="Calendar View"
+                            title="Month View"
                         >
                             <LayoutGrid size={20} />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('day')}
+                            className={`p-2 rounded-md transition-all ${viewMode === 'day' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                            title="Day/Schedule View"
+                        >
+                            <Columns size={20} className="rotate-90" />
                         </button>
                     </div>
                     <Button>+ New Appointment</Button>
                 </div>
             </div>
 
-            {viewMode === 'calendar' ? (
+            {viewMode === 'day' ? (
+                <SchedulerView
+                    appointments={appointments}
+                    onAppointmentClick={handleAppointmentClick}
+                    selectedDate={selectedDate}
+                    onDateChange={setSelectedDate}
+                />
+            ) : viewMode === 'calendar' ? (
                 <AppointmentCalendar appointments={appointments} />
             ) : (
                 <>
+                    {/* List View Content */}
                     <div className="border-b border-gray-200">
                         <nav className="-mb-px flex space-x-8">
                             {['upcoming', 'history'].map((tab) => (
@@ -93,7 +134,7 @@ const Appointments = () => {
                                 <Card key={appt.id} className="p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
                                     <div className="flex items-start space-x-4">
                                         <div className="bg-blue-50 p-3 rounded-lg text-blue-600">
-                                            <Calendar size={24} />
+                                            <CalendarIcon size={24} />
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-gray-800">{appt.type} - {appt.patientName}</h4>
@@ -132,33 +173,48 @@ const Appointments = () => {
                             ))
                         ) : (
                             <div className="p-12 text-center text-gray-500 bg-white rounded-lg border border-dashed border-gray-300">
-                                <Calendar className="w-12 h-12 mx-auto text-gray-300 mb-2" />
+                                <CalendarIcon className="w-12 h-12 mx-auto text-gray-300 mb-2" />
                                 <p>No appointments found in this view.</p>
                             </div>
                         )}
                     </div>
-
-                    <Modal
-                        isOpen={cancelModalOpen}
-                        onClose={() => setCancelModalOpen(false)}
-                        title="Cancel Appointment"
-                    >
-                        <div className="space-y-4">
-                            <div className="bg-yellow-50 p-4 rounded-lg flex items-start">
-                                <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" />
-                                <p className="text-sm text-yellow-800">
-                                    Are you sure you want to cancel the appointment for <strong>{selectedAppointment?.patientName}</strong>?
-                                    This action cannot be undone.
-                                </p>
-                            </div>
-                            <div className="flex justify-end space-x-3 pt-2">
-                                <Button variant="secondary" onClick={() => setCancelModalOpen(false)}>Keep Appointment</Button>
-                                <Button variant="danger" onClick={confirmCancel}>Confirm Cancellation</Button>
-                            </div>
-                        </div>
-                    </Modal>
                 </>
             )}
+
+            {/* Side Panel */}
+            <AppointmentSidePanel
+                appointment={selectedAppointment}
+                onClose={() => setIsSidePanelOpen(false)}
+                isOpen={isSidePanelOpen}
+                onAction={handleSidePanelAction}
+            />
+            {/* Overlay for Side Panel */}
+            {isSidePanelOpen && (
+                <div
+                    className="fixed inset-0 bg-black/20 z-40"
+                    onClick={() => setIsSidePanelOpen(false)}
+                ></div>
+            )}
+
+            <Modal
+                isOpen={cancelModalOpen}
+                onClose={() => setCancelModalOpen(false)}
+                title="Cancel Appointment"
+            >
+                <div className="space-y-4">
+                    <div className="bg-yellow-50 p-4 rounded-lg flex items-start">
+                        <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" />
+                        <p className="text-sm text-yellow-800">
+                            Are you sure you want to cancel the appointment for <strong>{apptToCancel?.patientName}</strong>?
+                            This action cannot be undone.
+                        </p>
+                    </div>
+                    <div className="flex justify-end space-x-3 pt-2">
+                        <Button variant="secondary" onClick={() => setCancelModalOpen(false)}>Keep Appointment</Button>
+                        <Button variant="danger" onClick={confirmCancel}>Confirm Cancellation</Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     );
 };

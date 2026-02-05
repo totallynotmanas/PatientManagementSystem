@@ -26,7 +26,7 @@ frontend/app/
 │   │   │   ├── Patients.jsx       # Patient directory and search
 │   │   │   └── Profile.jsx        # Doctor profile settings
 │   │   │
-│   │   ├── parent/             # Parent/Guardian role pages
+│   │   ├── patient/             # Patient role pages
 │   │   ├── nurse/              # Nurse role pages
 │   │   ├── lab/                # Lab Technician role pages
 │   │   ├── admin/              # Administrator role pages

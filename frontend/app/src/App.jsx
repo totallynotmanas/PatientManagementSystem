@@ -9,10 +9,10 @@ import PatientDetail from './pages/doctor/PatientDetail.jsx';
 import Patients from './pages/doctor/Patients.jsx';
 import Appointments from './pages/doctor/Appointments.jsx';
 import Profile from './pages/doctor/Profile.jsx';
-import ParentDashboard from './pages/parent/Dashboard.jsx';
 import NurseDashboard from './pages/nurse/Dashboard.jsx';
 import LabDashboard from './pages/lab/Dashboard.jsx';
 import AdminDashboard from './pages/admin/Dashboard.jsx';
+import PatientDashboard from './pages/patient/Dashboard.jsx';
 
 function App() {
   return (
@@ -30,8 +30,8 @@ function App() {
           <Route path="profile" element={<Profile />} />
         </Route>
 
-        <Route path="/dashboard/parent/*" element={<DashboardLayout role="parent" userName="John Doe" />}>
-          <Route path="" element={<ParentDashboard />} />
+        <Route path="/dashboard/patient/*" element={<DashboardLayout role="patient" userName="John Doe" />}>
+          <Route path="" element={<PatientDashboard />} />
         </Route>
 
         <Route path="/dashboard/nurse/*" element={<DashboardLayout role="nurse" userName="Nurse Joy" />}>

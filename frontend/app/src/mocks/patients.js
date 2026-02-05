@@ -9,7 +9,8 @@ export const mockPatients = [
         status: 'Stable',
         avatar: 'EB',
         email: 'emily.b@example.com',
-        phone: '555-0101'
+        phone: '555-0101',
+        address: '123 Maple Ave, Springfield'
     },
     {
         id: 'P002',
@@ -21,7 +22,8 @@ export const mockPatients = [
         status: 'Needs Review',
         avatar: 'MC',
         email: 'm.chen@example.com',
-        phone: '555-0102'
+        phone: '555-0102',
+        address: '456 Oak Dr, Metropolis'
     },
     {
         id: 'P003',
@@ -33,7 +35,8 @@ export const mockPatients = [
         status: 'Stable',
         avatar: 'SJ',
         email: 'sarah.j@example.com',
-        phone: '555-0103'
+        phone: '555-0103',
+        address: '789 Pine Ln, Gotham'
     },
     {
         id: 'P004',
@@ -46,7 +49,8 @@ export const mockPatients = [
         avatar: 'DK',
         parent: 'John Kim',
         email: 'j.kim@example.com',
-        phone: '555-0104'
+        phone: '555-0104',
+        address: '101 Elm St, Smallville'
     },
     {
         id: 'P005',
@@ -58,7 +62,138 @@ export const mockPatients = [
         status: 'Stable',
         avatar: 'RW',
         email: 'r.wilson@example.com',
-        phone: '555-0105'
+        phone: '555-0105',
+        address: '202 Cedar Blvd, Star City'
+    },
+    {
+        id: 'P006',
+        name: 'Linda Martinez',
+        age: 55,
+        gender: 'Female',
+        lastVisit: '2023-12-10',
+        condition: 'High Cholesterol',
+        status: 'Critical',
+        avatar: 'LM',
+        email: 'l.martinez@example.com',
+        phone: '555-0106',
+        address: '303 Birch Rd, Central City'
+    },
+    {
+        id: 'P007',
+        name: 'James Bond',
+        age: 40,
+        gender: 'Male',
+        lastVisit: '2023-09-15',
+        condition: 'Back Pain',
+        status: 'Stable',
+        avatar: 'JB',
+        email: 'j.bond@example.com',
+        phone: '555-0007',
+        address: '007 Spy Ln, London'
+    },
+    {
+        id: 'P008',
+        name: 'Natalia Romanova',
+        age: 32,
+        gender: 'Female',
+        lastVisit: '2023-11-25',
+        condition: 'Fatigue',
+        status: 'Needs Review',
+        avatar: 'NR',
+        email: 'n.romanova@example.com',
+        phone: '555-0108',
+        address: 'red room, russia'
+    },
+    {
+        id: 'P009',
+        name: 'Tony Starch',
+        age: 48,
+        gender: 'Male',
+        lastVisit: '2023-12-05',
+        condition: 'Heart Checkup',
+        status: 'Stable',
+        avatar: 'TS',
+        email: 't.starch@example.com',
+        phone: '555-0109',
+        address: '10880 Malibu Point, Malibu'
+    },
+    {
+        id: 'P010',
+        name: 'Steve Rogers',
+        age: 95,
+        gender: 'Male',
+        lastVisit: '2023-11-11',
+        condition: 'Checkup',
+        status: 'Stable',
+        avatar: 'SR',
+        email: 's.rogers@example.com',
+        phone: '555-0110',
+        address: '569 Leaman Place, Brooklyn'
+    },
+    {
+        id: 'P011',
+        name: 'Bruce Banner',
+        age: 50,
+        gender: 'Male',
+        lastVisit: '2023-10-31',
+        condition: 'Anxiety',
+        status: 'Needs Review',
+        avatar: 'BB',
+        email: 'b.banner@example.com',
+        phone: '555-0111',
+        address: 'Culver University, Willowdale'
+    },
+    {
+        id: 'P012',
+        name: 'Diana Prince',
+        age: 30,
+        gender: 'Female',
+        lastVisit: '2023-12-12',
+        condition: 'Migraine',
+        status: 'Stable',
+        avatar: 'DP',
+        email: 'd.prince@example.com',
+        phone: '555-0112',
+        address: 'Themyscira Island'
+    },
+    {
+        id: 'P013',
+        name: 'Clark Kent',
+        age: 35,
+        gender: 'Male',
+        lastVisit: '2023-11-30',
+        condition: 'Allergy (Kryptonite)',
+        status: 'Critical',
+        avatar: 'CK',
+        email: 'c.kent@example.com',
+        phone: '555-0113',
+        address: '344 Clinton St, Metropolis'
+    },
+    {
+        id: 'P014',
+        name: 'Wanda Maximoff',
+        age: 29,
+        gender: 'Female',
+        lastVisit: '2023-12-14',
+        condition: 'Insomnia',
+        status: 'Recovery',
+        avatar: 'WM',
+        email: 'w.maximoff@example.com',
+        phone: '555-0114',
+        address: 'Westview, NJ'
+    },
+    {
+        id: 'P015',
+        name: 'Peter Parker',
+        age: 20,
+        gender: 'Male',
+        lastVisit: '2023-12-15',
+        condition: 'Sprains',
+        status: 'Stable',
+        avatar: 'PP',
+        email: 'p.parker@example.com',
+        phone: '555-0115',
+        address: '20 Ingram St, Queens'
     }
 ];
 

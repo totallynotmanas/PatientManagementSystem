@@ -4,7 +4,7 @@ import {
    eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths,
    isToday, parseISO
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Clock, User, AlertCircle, CheckCircle, Calendar as CalendarIcon, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Clock, User, AlertCircle, Calendar as CalendarIcon, X } from 'lucide-react';
 import Button from './common/Button';
 import Badge from './common/Badge';
 
@@ -37,16 +37,6 @@ const AppointmentCalendar = ({ appointments }) => {
    // Helper to get appointments for a day
    const getDailyAppointments = (date) => {
       return appointments.filter(appt => isSameDay(parseISO(appt.date), date));
-   };
-
-   const getStatusColor = (status) => {
-      switch (status) {
-         case 'Confirmed': return 'bg-blue-500';
-         case 'Follow-up': return 'bg-green-500'; // Assuming Type maps to color broadly
-         case 'Pending': return 'bg-orange-500';
-         case 'Urgent': return 'bg-red-500';
-         default: return 'bg-blue-500';
-      }
    };
 
    // Custom logic for requested color coding by Type instead of Status if needed, 
