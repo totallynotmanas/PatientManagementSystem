@@ -7,10 +7,9 @@ import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
 import Input from '../../components/common/Input';
-import Alert from '../../components/common/Alert';
 
 import { getPatientById } from '../../mocks/patients';
-import { mockMedicalHistory, mockPrescriptions, mockLabs, mockTreatments } from '../../mocks/records';
+import { mockMedicalHistory, mockPrescriptions, mockTreatments } from '../../mocks/records';
 
 const PatientDetail = () => {
     const { id } = useParams();

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Search, Filter } from 'lucide-react';
-import Input from '../../../components/common/Input';
 import Button from '../../../components/common/Button';
 
 const PatientSearch = ({ onSearch, searchTerm, setSearchTerm }) => {

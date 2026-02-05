@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Shield, Check } from 'lucide-react';
+import { Shield } from 'lucide-react';
 import Card from '../../../components/common/Card';
-import Badge from '../../../components/common/Badge';
 
 const ConsentManager = () => {
     const [consents, setConsents] = useState([
