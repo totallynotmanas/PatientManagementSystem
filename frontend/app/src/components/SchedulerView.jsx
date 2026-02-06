@@ -3,20 +3,20 @@ import { format, startOfDay, isSameDay, parse, differenceInMinutes, setHours, se
 import MiniCalendar from './MiniCalendar';
 
 const SchedulerView = ({ appointments, onAppointmentClick, selectedDate, onDateChange }) => {
-   // Scroll to 8 AM on load
-   const scrollRef = useRef(null);
-   useEffect(() => {
-      if (scrollRef.current) {
-         // Scroll to ~7:00 AM (420 mins * 2px/min = 840px roughly, adjusted for layout)
-         scrollRef.current.scrollTop = 400;
-      }
-   }, []);
-
    // Time Constants
    const START_HOUR = 7; // 7 AM
    const END_HOUR = 21; // 9 PM
    const PIXELS_PER_MINUTE = 2;
    const SLOT_HEIGHT = 30 * PIXELS_PER_MINUTE; // 30 min slots
+
+   // Scroll to 8 AM on load
+   const scrollRef = useRef(null);
+   useEffect(() => {
+      if (scrollRef.current) {
+         // Calculate scroll position to show 8 AM based on constants
+         scrollRef.current.scrollTop = (8 - START_HOUR) * 60 * PIXELS_PER_MINUTE;
+      }
+   }, []);
 
    // Current Time Indicator Logic
    const [currentTime, setCurrentTime] = useState(new Date());

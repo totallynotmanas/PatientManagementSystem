@@ -35,7 +35,6 @@ const Appointments = () => {
     };
 
     const handleSidePanelAction = (action) => {
-        console.log('Action:', action, selectedAppointment);
         if (action === 'cancel') {
             setApptToCancel(selectedAppointment);
             setCancelModalOpen(true);
@@ -51,6 +50,8 @@ const Appointments = () => {
     };
 
     const confirmCancel = () => {
+        if (!apptToCancel) return; // Safety check
+
         setAppointments(appointments.map(a =>
             a.id === apptToCancel.id ? { ...a, status: 'Cancelled' } : a
         ));
@@ -197,23 +198,31 @@ const Appointments = () => {
             )}
 
             <Modal
-                isOpen={cancelModalOpen}
-                onClose={() => setCancelModalOpen(false)}
+                isOpen={cancelModalOpen && apptToCancel !== null}
+                onClose={() => {
+                    setCancelModalOpen(false);
+                    setApptToCancel(null);
+                }}
                 title="Cancel Appointment"
             >
-                <div className="space-y-4">
-                    <div className="bg-yellow-50 p-4 rounded-lg flex items-start">
-                        <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" />
-                        <p className="text-sm text-yellow-800">
-                            Are you sure you want to cancel the appointment for <strong>{apptToCancel?.patientName}</strong>?
-                            This action cannot be undone.
-                        </p>
+                {apptToCancel && (
+                    <div className="space-y-4">
+                        <div className="bg-yellow-50 p-4 rounded-lg flex items-start">
+                            <AlertCircle className="w-5 h-5 text-yellow-600 mr-2 mt-0.5" />
+                            <p className="text-sm text-yellow-800">
+                                Are you sure you want to cancel the appointment for <strong>{apptToCancel.patientName}</strong>?
+                                This action cannot be undone.
+                            </p>
+                        </div>
+                        <div className="flex justify-end space-x-3 pt-2">
+                            <Button variant="secondary" onClick={() => {
+                                setCancelModalOpen(false);
+                                setApptToCancel(null);
+                            }}>Keep Appointment</Button>
+                            <Button variant="danger" onClick={confirmCancel}>Confirm Cancellation</Button>
+                        </div>
                     </div>
-                    <div className="flex justify-end space-x-3 pt-2">
-                        <Button variant="secondary" onClick={() => setCancelModalOpen(false)}>Keep Appointment</Button>
-                        <Button variant="danger" onClick={confirmCancel}>Confirm Cancellation</Button>
-                    </div>
-                </div>
+                )}
             </Modal>
         </div>
     );

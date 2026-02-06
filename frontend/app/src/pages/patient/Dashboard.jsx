@@ -30,12 +30,84 @@ const PatientDashboard = () => {
    const latestVitals = mockVitalsHistory[0] || {};
    const previousVitals = mockVitalsHistory[1] || {};
 
-   // Helper for trend arrows
-   const renderTrend = (current, previous, label) => {
-      if (!current || !previous) return null;
-      if (current > previous) return <span className="text-red-500 text-xs ml-1">↑</span>; // Simplistic logic: up is bad for BP/HR ideally contextual
-      if (current < previous) return <span className="text-green-500 text-xs ml-1">↓</span>;
-      return <span className="text-gray-400 text-xs ml-1">-</span>;
+   // Normal ranges for vital signs
+   const NORMAL_RANGES = {
+      hr: { min: 60, max: 100, unit: 'bpm', name: 'Heart Rate' },
+      spo2: { min: 95, max: 100, unit: '%', name: 'SpO2' },
+      resp: { min: 12, max: 20, unit: '/min', name: 'Resp. Rate' },
+      temp: { min: 97.0, max: 99.0, unit: '°F', name: 'Temperature' },
+      weight: { min: null, max: null, unit: 'kg', name: 'Weight' }, // Weight is relative, no absolute normal
+      systolic: { min: 90, max: 120, unit: 'mmHg', name: 'Systolic BP' },
+      diastolic: { min: 60, max: 80, unit: 'mmHg', name: 'Diastolic BP' }
+   };
+
+   // Helper to determine if a value is within normal range
+   const isInNormalRange = (value, vitalType) => {
+      const range = NORMAL_RANGES[vitalType];
+      if (!range || range.min === null || range.max === null) return null;
+      return value >= range.min && value <= range.max;
+   };
+
+   // Helper to get status badge for a vital sign
+   const getVitalStatus = (value, vitalType) => {
+      const range = NORMAL_RANGES[vitalType];
+      if (!range || range.min === null || range.max === null) return null;
+
+      if (value < range.min) return { label: 'Low', color: 'text-yellow-600 bg-yellow-50' };
+      if (value > range.max) return { label: 'High', color: 'text-red-600 bg-red-50' };
+      return { label: 'Normal', color: 'text-green-600 bg-green-50' };
+   };
+
+   // Context-aware trend indicator
+   const renderContextualTrend = (current, previous, vitalType) => {
+      if (!current || !previous || current === previous) {
+         return <span className="text-gray-400 text-xs ml-1">-</span>;
+      }
+
+      const range = NORMAL_RANGES[vitalType];
+      const isIncreasing = current > previous;
+      const currentInRange = isInNormalRange(current, vitalType);
+      const previousInRange = isInNormalRange(previous, vitalType);
+
+      // Determine if the trend is positive (good) or negative (bad)
+      let isPositiveTrend = false;
+      let trendIcon = isIncreasing ? '↑' : '↓';
+
+      if (range && range.min !== null && range.max !== null) {
+         // Moving into normal range is always positive
+         if (!previousInRange && currentInRange) {
+            isPositiveTrend = true;
+         }
+         // Moving out of normal range is always negative
+         else if (previousInRange && !currentInRange) {
+            isPositiveTrend = false;
+         }
+         // Both in range: stable is good
+         else if (currentInRange && previousInRange) {
+            isPositiveTrend = true; // Staying in range is neutral-positive
+         }
+         // Both out of range: moving toward normal is positive
+         else {
+            const midpoint = (range.min + range.max) / 2;
+            const currentDistance = Math.abs(current - midpoint);
+            const previousDistance = Math.abs(previous - midpoint);
+            isPositiveTrend = currentDistance < previousDistance;
+         }
+      } else {
+         // For vitals without absolute ranges (like weight), decreasing is generally positive
+         isPositiveTrend = !isIncreasing;
+      }
+
+      const color = isPositiveTrend ? 'text-green-500' : 'text-red-500';
+      const title = isPositiveTrend
+         ? `Trending ${isIncreasing ? 'up' : 'down'} (improving)`
+         : `Trending ${isIncreasing ? 'up' : 'down'} (concerning)`;
+
+      return (
+         <span className={`${color} text-xs ml-1`} title={title}>
+            {trendIcon}
+         </span>
+      );
    };
 
    return (
@@ -99,8 +171,13 @@ const PatientDashboard = () => {
                   <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Heart Rate</p>
                   <p className="text-lg font-bold text-gray-800 flex justify-center items-center">
                      {latestVitals.hr} <span className="text-xs font-normal ml-1">bpm</span>
-                     {renderTrend(latestVitals.hr, previousVitals.hr)}
+                     {renderContextualTrend(latestVitals.hr, previousVitals.hr, 'hr')}
                   </p>
+                  {getVitalStatus(latestVitals.hr, 'hr') && (
+                     <span className={`text-[10px] ${getVitalStatus(latestVitals.hr, 'hr').color} px-1.5 py-0.5 rounded-full mt-2 inline-block`}>
+                        {getVitalStatus(latestVitals.hr, 'hr').label}
+                     </span>
+                  )}
                </Card>
                {/* SpO2 */}
                <Card className="p-3 text-center hover:shadow-md transition border-t-4 border-cyan-500">
@@ -108,16 +185,26 @@ const PatientDashboard = () => {
                   <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">SpO2</p>
                   <p className="text-lg font-bold text-gray-800 flex justify-center items-center">
                      {latestVitals.spo2}%
-                     {renderTrend(latestVitals.spo2, previousVitals.spo2)}
+                     {renderContextualTrend(latestVitals.spo2, previousVitals.spo2, 'spo2')}
                   </p>
+                  {getVitalStatus(latestVitals.spo2, 'spo2') && (
+                     <span className={`text-[10px] ${getVitalStatus(latestVitals.spo2, 'spo2').color} px-1.5 py-0.5 rounded-full mt-2 inline-block`}>
+                        {getVitalStatus(latestVitals.spo2, 'spo2').label}
+                     </span>
+                  )}
                </Card>
                {/* Resp */}
                <Card className="p-3 text-center hover:shadow-md transition border-t-4 border-indigo-500">
                   <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Resp. Rate</p>
                   <p className="text-lg font-bold text-gray-800 flex justify-center items-center">
                      {latestVitals.resp} <span className="text-xs font-normal">/min</span>
-                     {renderTrend(latestVitals.resp, previousVitals.resp)}
+                     {renderContextualTrend(latestVitals.resp, previousVitals.resp, 'resp')}
                   </p>
+                  {getVitalStatus(latestVitals.resp, 'resp') && (
+                     <span className={`text-[10px] ${getVitalStatus(latestVitals.resp, 'resp').color} px-1.5 py-0.5 rounded-full mt-2 inline-block`}>
+                        {getVitalStatus(latestVitals.resp, 'resp').label}
+                     </span>
+                  )}
                </Card>
                {/* Temp */}
                <Card className="p-3 text-center hover:shadow-md transition border-t-4 border-orange-500">
@@ -125,8 +212,13 @@ const PatientDashboard = () => {
                   <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Temp</p>
                   <p className="text-lg font-bold text-gray-800 flex justify-center items-center">
                      {latestVitals.temp}°F
-                     {renderTrend(latestVitals.temp, previousVitals.temp)}
+                     {renderContextualTrend(latestVitals.temp, previousVitals.temp, 'temp')}
                   </p>
+                  {getVitalStatus(latestVitals.temp, 'temp') && (
+                     <span className={`text-[10px] ${getVitalStatus(latestVitals.temp, 'temp').color} px-1.5 py-0.5 rounded-full mt-2 inline-block`}>
+                        {getVitalStatus(latestVitals.temp, 'temp').label}
+                     </span>
+                  )}
                </Card>
                {/* Weight */}
                <Card className="p-3 text-center hover:shadow-md transition border-t-4 border-green-500">
@@ -134,7 +226,7 @@ const PatientDashboard = () => {
                   <p className="text-xs text-gray-500 font-medium uppercase tracking-wide">Weight</p>
                   <p className="text-lg font-bold text-gray-800 flex justify-center items-center">
                      {latestVitals.weight} <span className="text-xs font-normal">kg</span>
-                     {renderTrend(latestVitals.weight, previousVitals.weight)}
+                     {renderContextualTrend(latestVitals.weight, previousVitals.weight, 'weight')}
                   </p>
                </Card>
             </div>

@@ -51,7 +51,7 @@ const AppointmentCalendar = ({ appointments }) => {
       if (type.toLowerCase().includes('follow')) return 'bg-green-500';
       if (type.toLowerCase().includes('urgent') || type.toLowerCase().includes('emergency')) return 'bg-orange-500';
       return 'bg-blue-500';
-   }
+   };
 
 
    return (

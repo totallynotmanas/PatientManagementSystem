@@ -41,7 +41,6 @@ export default function CreateAccount() {
     }
 
     // TODO: Later → send to backend API
-    console.log('Patient registration attempt:', { name, email, phone });
 
     setSuccess('Account created successfully! Redirecting to sign in...');
     setTimeout(() => {
