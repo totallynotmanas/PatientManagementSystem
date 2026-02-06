@@ -4,6 +4,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
 import Modal from '../../components/common/Modal';
+import Alert from '../../components/common/Alert';
 import Input from '../../components/common/Input';
 import { mockAppointments } from '../../mocks/appointments';
 

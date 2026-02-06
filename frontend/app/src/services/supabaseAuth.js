@@ -1,36 +1,85 @@
-// Supabase Authentication Service
-// This module handles all authentication operations
+// Authentication service for backend API
+const API_BASE_URL = 'http://localhost:8081/api/auth';
 
-export const signUp = async (email, password) => {
-  // TODO: Implement Supabase sign up
-  console.log('Sign up:', email);
+export const signup = async (email, password, role = 'PATIENT') => {
+   try {
+      const response = await fetch(`${API_BASE_URL}/register`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         credentials: 'include',
+         body: JSON.stringify({ email, password, role }),
+      });
+
+      if (!response.ok) {
+         const error = await response.json();
+         throw new Error(error.message || 'Registration failed');
+      }
+
+      return await response.json();
+   } catch (error) {
+      throw error;
+   }
 };
 
-export const signIn = async (email, password) => {
-  // TODO: Implement Supabase sign in
-  console.log('Sign in:', email);
+export const login = async (email, password) => {
+   try {
+      const response = await fetch(`${API_BASE_URL}/login`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         credentials: 'include',
+         body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+         const error = await response.json();
+         throw new Error(error.message || 'Login failed');
+      }
+
+      return await response.json();
+   } catch (error) {
+      throw error;
+   }
 };
 
-export const signOut = async () => {
-  // TODO: Implement Supabase sign out
-  console.log('Sign out');
+export const logout = async () => {
+   try {
+      const response = await fetch(`${API_BASE_URL}/logout`, {
+         method: 'POST',
+         credentials: 'include',
+      });
+
+      if (!response.ok) {
+         throw new Error('Logout failed');
+      }
+
+      return await response.json();
+   } catch (error) {
+      throw error;
+   }
 };
 
 export const getCurrentUser = async () => {
-  // TODO: Implement get current user from Supabase
-  console.log('Get current user');
-  return null;
+   try {
+      const response = await fetch(`${API_BASE_URL}/me`, {
+         method: 'GET',
+         credentials: 'include',
+      });
+
+      if (!response.ok) {
+         return null;
+      }
+
+      return await response.json();
+   } catch (error) {
+      return null;
+   }
 };
 
 export const getCurrentSession = async () => {
-  // TODO: Implement get current session from Supabase
-  console.log('Get current session');
-  return null;
-};
-
-export const onAuthStateChange = (callback) => {
-  // TODO: Implement auth state change listener for Supabase
-  console.log('Auth state change listener');
-  // Return unsubscribe function
-  return () => {};
+   try {
+      const user = await getCurrentUser();
+      return user ? { user } : null;
+   } catch (error) {
+      return null;
+   }
 };
