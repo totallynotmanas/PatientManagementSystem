@@ -41,7 +41,6 @@ export default function CreateAccount() {
     }
 
     // TODO: Later → send to backend API
-    console.log('Patient registration attempt:', { name, email, phone });
 
     setSuccess('Account created successfully! Redirecting to sign in...');
     setTimeout(() => {
@@ -212,13 +211,13 @@ export default function CreateAccount() {
 
             <p className="text-center text-xs text-gray-400 mt-8">
               By creating an account, you agree to our{' '}
-              <a href="#" className="text-gray-500 underline hover:text-gray-700">
+              <button className="text-gray-500 underline hover:text-gray-700 bg-transparent border-none cursor-pointer p-0 font-inherit">
                 Terms of Service
-              </a>{' '}
+              </button>{' '}
               and{' '}
-              <a href="#" className="text-gray-500 underline hover:text-gray-700">
+              <button className="text-gray-500 underline hover:text-gray-700 bg-transparent border-none cursor-pointer p-0 font-inherit">
                 Privacy Policy
-              </a>
+              </button>
             </p>
           </form>
         </div>

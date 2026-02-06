@@ -1,150 +1,137 @@
-import { createClient } from '@supabase/supabase-js';
+// Authentication service for backend API
+const API_BASE_URL = 'http://localhost:8081/api/auth';
 
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+// Auth state change listeners
+let authStateListeners = [];
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const signup = async (email, password, role = 'PATIENT') => {
+   try {
+      const response = await fetch(`${API_BASE_URL}/register`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         credentials: 'include',
+         body: JSON.stringify({ email, password, role }),
+      });
 
-/**
- * Sign up a new user with email and password
- * @param {string} email - User email
- * @param {string} password - User password
- * @param {object} userMetadata - Additional user metadata (name, phone, etc.)
- * @returns {Promise} - Supabase auth response
- */
-export const signUp = async (email, password, userMetadata = {}) => {
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: userMetadata,
-      },
-    });
+      if (!response.ok) {
+         const error = await response.json();
+         throw new Error(error.message || 'Registration failed');
+      }
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return { success: true, user: data.user, session: data.session };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+      const data = await response.json();
+      notifyAuthStateChange(data);
+      return data;
+   } catch (error) {
+      throw error;
+   }
 };
 
-/**
- * Sign in an existing user with email and password
- * @param {string} email - User email
- * @param {string} password - User password
- * @returns {Promise} - Supabase auth response
- */
+export const signUp = async (email, password, userData) => {
+   try {
+      const role = userData?.role || 'PATIENT';
+      const result = await signup(email, password, role);
+      return { success: true, user: result.user, session: result };
+   } catch (error) {
+      return { success: false, error: error.message };
+   }
+};
+
+export const login = async (email, password) => {
+   try {
+      const response = await fetch(`${API_BASE_URL}/login`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         credentials: 'include',
+         body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+         const error = await response.json();
+         throw new Error(error.message || 'Login failed');
+      }
+
+      const data = await response.json();
+      notifyAuthStateChange(data);
+      return data;
+   } catch (error) {
+      throw error;
+   }
+};
+
 export const signIn = async (email, password) => {
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return { success: true, user: data.user, session: data.session };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+   try {
+      const result = await login(email, password);
+      return { success: true, user: result.user, session: result };
+   } catch (error) {
+      return { success: false, error: error.message };
+   }
 };
 
-/**
- * Sign out the current user
- * @returns {Promise} - Supabase response
- */
+export const logout = async () => {
+   try {
+      const response = await fetch(`${API_BASE_URL}/logout`, {
+         method: 'POST',
+         credentials: 'include',
+      });
+
+      if (!response.ok) {
+         throw new Error('Logout failed');
+      }
+
+      const data = await response.json();
+      notifyAuthStateChange(null);
+      return data;
+   } catch (error) {
+      throw error;
+   }
+};
+
 export const signOut = async () => {
-  try {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return { success: true };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+   try {
+      await logout();
+      return { success: true };
+   } catch (error) {
+      return { success: false, error: error.message };
+   }
 };
 
-/**
- * Get the current session
- * @returns {Promise} - Current session or null
- */
-export const getCurrentSession = async () => {
-  try {
-    const { data, error } = await supabase.auth.getSession();
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return data.session;
-  } catch (error) {
-    console.error('Error getting session:', error);
-    return null;
-  }
-};
-
-/**
- * Get the current authenticated user
- * @returns {Promise} - Current user or null
- */
 export const getCurrentUser = async () => {
-  try {
-    const { data, error } = await supabase.auth.getUser();
+   try {
+      const response = await fetch(`${API_BASE_URL}/me`, {
+         method: 'GET',
+         credentials: 'include',
+      });
 
-    if (error) {
-      throw new Error(error.message);
-    }
+      if (!response.ok) {
+         return null;
+      }
 
-    return data.user;
-  } catch (error) {
-    console.error('Error getting user:', error);
-    return null;
-  }
+      return await response.json();
+   } catch (error) {
+      return null;
+   }
 };
 
-/**
- * Listen to authentication state changes
- * @param {function} callback - Callback function when auth state changes
- * @returns {function} - Unsubscribe function
- */
+export const getCurrentSession = async () => {
+   try {
+      const user = await getCurrentUser();
+      return user ? { user } : null;
+   } catch (error) {
+      return null;
+   }
+};
+
+// Auth state change listener
 export const onAuthStateChange = (callback) => {
-  const { data: authListener } = supabase.auth.onAuthStateChange(
-    (event, session) => {
-      callback(session);
-    }
-  );
+   authStateListeners.push(callback);
 
-  return authListener?.subscription?.unsubscribe || (() => {});
+   // Return unsubscribe function
+   return () => {
+      authStateListeners = authStateListeners.filter(listener => listener !== callback);
+   };
 };
 
-/**
- * Update user metadata (profile info)
- * @param {object} metadata - User metadata to update
- * @returns {Promise} - Updated user
- */
-export const updateUserMetadata = async (metadata) => {
-  try {
-    const { data, error } = await supabase.auth.updateUser({
-      data: metadata,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    return { success: true, user: data.user };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
+// Notify all listeners of auth state change
+const notifyAuthStateChange = (session) => {
+   authStateListeners.forEach(listener => listener(session));
 };
-
-export default supabase;
