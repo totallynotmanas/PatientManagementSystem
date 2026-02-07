@@ -6,6 +6,9 @@ import com.securehealth.backend.repository.LoginRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
+import java.util.Random;
+
 
 import java.util.Optional;
 
@@ -19,11 +22,16 @@ import java.util.Optional;
  *
  * @author Manas
  */
+
 @Service
 public class AuthService {
 
     @Autowired
     private LoginRepository loginRepository;
+
+    @Autowired
+    private EmailService emailService;
+
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -72,23 +80,85 @@ public class AuthService {
      * @return The Login entity if successful.
      * @throws RuntimeException if credentials are invalid or account is locked.
      */
-    public Login authenticateUser(String email, String rawPassword) {
-        // 1. Find User
-        Login user = loginRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid credentials")); // Generic message for security
+    public String authenticateUser(String email, String rawPassword) {
 
-        // 2. Check Lockout (Epic 5 - Active Defense)
+        Login user = loginRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+
         if (user.isLocked()) {
-            // In a real app, check if lockout time has expired here
             throw new RuntimeException("Account is locked due to too many failed attempts.");
         }
 
-        // 3. Verify Password
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
-            // Update failed attempts count here (omitted for brevity, but vital for Epic 5)
             throw new RuntimeException("Invalid credentials");
         }
 
-        return user;
+        // 2FA CHECK
+        if ((user.getRole() == Role.DOCTOR || user.getRole() == Role.ADMIN)
+                && user.isTwoFactorEnabled()) {
+
+            String otp = generateOtp();
+            user.setOtp(otp);
+            user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
+            loginRepository.save(user);
+
+            emailService.sendOtp(user.getEmail(), otp);
+
+            return "OTP_REQUIRED";  // stops login until OTP verified
+        }
+
+        return "LOGIN_SUCCESS";
     }
+
+
+    /**
+     * Verifies the One-Time Password (OTP) for a user during 2FA login.
+     * <p>
+     * Checks that the OTP matches the stored value and that it has not expired.
+     * On success, the OTP is cleared from the database to prevent reuse.
+     * </p>
+     *
+     * @param email The email of the user performing OTP verification.
+     * @param otp   The OTP value entered by the user.
+     * @return "LOGIN_SUCCESS" if OTP is valid.
+     * @throws RuntimeException if the OTP is invalid or expired.
+     * @author Diya
+     */
+    public String verifyOtp(String email, String otp) {
+        public String verifyOtp
+    }(String email, String otp) {
+
+        Login user = loginRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getOtp() != null &&
+                user.getOtp().equals(otp) &&
+                user.getOtpExpiry().isAfter(LocalDateTime.now())) {
+
+            user.setOtp(null);
+            loginRepository.save(user);
+
+            return "LOGIN_SUCCESS";
+        }
+
+        throw new RuntimeException("Invalid or expired OTP");
+    }
+
+
+    /**
+     * Generates a 6-digit numeric One-Time Password (OTP).
+     * <p>
+     * The OTP is used for step-up authentication during 2FA login.
+     * </p>
+     *
+     * @return A randomly generated 6-digit OTP as a String.
+     */
+    private String generateOtp() {
+
+
+        private String generateOtp() {
+        return String.valueOf(new Random().nextInt(900000) + 100000);
+    }
+
+
 }

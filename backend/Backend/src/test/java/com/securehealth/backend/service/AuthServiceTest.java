@@ -23,6 +23,9 @@ import static org.mockito.Mockito.*;
  */
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
+    @Mock
+    private EmailService emailService;
+
 
     @Mock
     private LoginRepository loginRepository;
@@ -114,14 +117,15 @@ class AuthServiceTest {
         String password = "SecurePassword123!";
 
         when(loginRepository.findByEmail(email)).thenReturn(Optional.of(testUser));
-        when(passwordEncoder.matches(password, testUser.getPasswordHash())).thenReturn(true);
+        when(passwordEncoder.matches(password, testUser.getPasswordHash()))
+                .thenReturn(true);
+
+
 
         // Act
-        Login result = authService.authenticateUser(email, password);
+        String result = authService.authenticateUser(email, password);
+        assertEquals("LOGIN_SUCCESS", result);
 
-        // Assert
-        assertNotNull(result);
-        assertEquals(email, result.getEmail());
         verify(loginRepository, times(1)).findByEmail(email);
         verify(passwordEncoder, times(1)).matches(password, testUser.getPasswordHash());
     }
@@ -171,4 +175,24 @@ class AuthServiceTest {
         assertTrue(exception.getMessage().contains("locked"));
         verify(passwordEncoder, never()).matches(anyString(), anyString());
     }
+
+    @Test
+    void testAuthenticateUser_DoctorRequiresOtp() {
+        testUser.setRole(Role.DOCTOR);
+        testUser.setTwoFactorEnabled(true);
+
+        when(loginRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
+
+        String password = "Password123!";
+        when(passwordEncoder.matches(password, testUser.getPasswordHash()))
+                .thenReturn(true);
+
+        String result = authService.authenticateUser("test@example.com", password);
+
+        assertEquals("OTP_REQUIRED", result);
+        verify(loginRepository, times(1)).save(any(Login.class));
+        verify(emailService, times(1)).sendOtp(anyString(), anyString());
+    }
+
+
 }
