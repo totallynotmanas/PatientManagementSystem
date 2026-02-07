@@ -25,13 +25,16 @@ import static org.mockito.Mockito.*;
 class AuthServiceTest {
 
     @Mock
+    private EmailService emailService;
+
+    @Mock
     private LoginRepository loginRepository;
 
     @Mock
-    private SessionRepository sessionRepository; // [NEW] Added for JWT sessions
+    private SessionRepository sessionRepository;
 
     @Mock
-    private JwtUtil jwtUtil; // [NEW] Added for Token generation
+    private JwtUtil jwtUtil;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -80,7 +83,7 @@ class AuthServiceTest {
         verify(loginRepository, never()).save(any(Login.class));
     }
 
-    // ==================== login() Tests (UPDATED) ====================
+    // ==================== login() Tests (MERGED) ====================
 
     @Test
     void testLogin_Success() {
@@ -99,7 +102,7 @@ class AuthServiceTest {
         when(jwtUtil.generateRefreshToken()).thenReturn("refresh-token-456");
 
         // Act
-        // [FIX] We now call 'login' instead of 'authenticateUser'
+        // [FIXED] Uses new login method from Backend
         LoginResponse result = authService.login(email, password, ip, agent);
 
         // Assert
@@ -107,9 +110,23 @@ class AuthServiceTest {
         assertEquals("access-token-123", result.getAccessToken());
         assertEquals("refresh-token-456", result.getRefreshToken());
         assertEquals("PATIENT", result.getRole());
+        assertEquals("LOGIN_SUCCESS", result.getStatus());
 
         // Verify Session was saved to DB
         verify(sessionRepository, times(1)).save(any(Session.class));
+    }
+
+    @Test
+    void testLogin_UserNotFound() {
+        // Arrange
+        String email = "nonexistent@example.com";
+        when(loginRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        RuntimeException exception = assertThrows(RuntimeException.class,
+                () -> authService.login(email, "SomePassword123!", "ip", "agent"));
+        
+        assertEquals("Invalid credentials", exception.getMessage());
     }
 
     @Test
@@ -138,7 +155,30 @@ class AuthServiceTest {
         assertTrue(exception.getMessage().contains("locked"));
     }
 
-    // ==================== logout() Tests (NEW) ====================
+    // [MERGED] Adapted from Devops branch to use new 'login' method signature
+    @Test
+    void testLogin_DoctorRequiresOtp() {
+        // Arrange
+        testUser.setRole(Role.DOCTOR);
+        testUser.setTwoFactorEnabled(true);
+        String password = "Password123!";
+        
+        when(loginRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
+        when(passwordEncoder.matches(password, testUser.getPasswordHash())).thenReturn(true);
+
+        // Act
+        // Call the new login method
+        LoginResponse result = authService.login("test@example.com", password, "127.0.0.1", "Chrome");
+
+        // Assert
+        assertEquals("OTP_REQUIRED", result.getStatus()); // Check status instead of return string
+        assertNull(result.getAccessToken()); // Ensure no tokens were generated
+        
+        verify(loginRepository, times(1)).save(any(Login.class)); // Verifies OTP was saved to DB
+        verify(emailService, times(1)).sendOtp(anyString(), anyString()); // Verifies email was sent
+    }
+
+    // ==================== logout() Tests ====================
 
     @Test
     void testLogout_Success() {

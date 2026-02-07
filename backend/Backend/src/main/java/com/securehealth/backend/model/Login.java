@@ -1,5 +1,7 @@
 package com.securehealth.backend.model;
 
+
+import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -27,9 +29,25 @@ public class Login {
      * Unique identifier for the user.
      * Auto-incremented by the database.
      */
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
+
+    /**
+     * To enable 2FA for doctors and admins
+     */
+    private boolean twoFactorEnabled;
+
+    /**
+     * To authorize the user
+     */
+    private String otp;
+
+    /**
+     * To check if the otp is valid or not
+     */
+    private LocalDateTime otpExpiry;
 
     /**
      * User's unique email address.

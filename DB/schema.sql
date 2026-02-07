@@ -110,3 +110,5 @@ CREATE TABLE consent_log (
     changed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+UPDATE login SET two_factor_enabled = true WHERE role = 'DOCTOR';
+UPDATE login SET two_factor_enabled = true WHERE role = 'ADMIN';
