@@ -33,9 +33,6 @@ public class EmailService {
      * @param otp The generated One-Time Password to be delivered.
      */
     public void sendOtp(String to, String otp) {
-
-
-        public void sendOtp(String to, String otp) {
         SimpleMailMessage msg = new SimpleMailMessage();
         msg.setTo(to);
         msg.setSubject("SecureHealth Login OTP");

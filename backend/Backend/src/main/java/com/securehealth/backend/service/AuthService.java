@@ -2,10 +2,10 @@ package com.securehealth.backend.service;
 
 import com.securehealth.backend.model.Login;
 import com.securehealth.backend.model.Role;
-import com.securehealth.backend.model.Session; // [FIXED] Added Import
+import com.securehealth.backend.model.Session;
 import com.securehealth.backend.repository.LoginRepository;
-import com.securehealth.backend.repository.SessionRepository; // [FIXED] Added Import
-import com.securehealth.backend.dto.LoginResponse; // [FIXED] Added Import
+import com.securehealth.backend.repository.SessionRepository;
+import com.securehealth.backend.dto.LoginResponse;
 import com.securehealth.backend.util.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Random;
 
-import org.springframework.transaction.annotation.Transactional; // [FIXED] Added Import
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.security.MessageDigest;
@@ -41,7 +41,8 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
-    private SessionRepository sessionRepository; // Now this will work!
+    @Autowired
+    private SessionRepository sessionRepository;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -180,7 +181,6 @@ public class AuthService {
             throw new RuntimeException("Error hashing token");
         }
     }
-    }
 
 
     /**
@@ -192,11 +192,6 @@ public class AuthService {
      * @return A randomly generated 6-digit OTP as a String.
      */
     private String generateOtp() {
-
-
-        private String generateOtp() {
         return String.valueOf(new Random().nextInt(900000) + 100000);
     }
-
-
 }

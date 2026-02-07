@@ -156,19 +156,35 @@ public class AuthController {
      * @return HTTP 200 with login success status, or HTTP 401 if verification fails
      */
     @PostMapping("/verify-otp")
-    public ResponseEntity<Map<String, Object>> verifyOtp(@RequestBody Map<String, String> request) {
+    public ResponseEntity<LoginResponse> verifyOtp(@RequestBody Map<String, String> request,
+                                                     HttpServletResponse response,
+                                                     HttpServletRequest httpRequest) {
         try {
-            String result = authService.verifyOtp(request.get("email"), request.get("otp"));
+            LoginResponse loginData = authService.verifyOtp(
+                request.get("email"), 
+                request.get("otp"),
+                httpRequest.getRemoteAddr(),
+                httpRequest.getHeader("User-Agent")
+            );
 
-            Map<String, Object> resp = new HashMap<>();
-            resp.put("message", "Login successful after OTP");
-            resp.put("status", result);
-            return ResponseEntity.ok(resp);
+            // Login is successful. Set the Cookie.
+            Cookie refreshCookie = new Cookie("refreshToken", loginData.getRefreshToken());
+            refreshCookie.setHttpOnly(true);
+            refreshCookie.setSecure(false); // True in Prod
+            refreshCookie.setPath("/api/auth");
+            refreshCookie.setMaxAge(7 * 24 * 60 * 60);
+
+            response.addCookie(refreshCookie);
+
+            // Hide Refresh Token from JSON
+            loginData.setRefreshToken(null); 
+
+            return ResponseEntity.ok(loginData);
 
         } catch (RuntimeException e) {
-            Map<String, Object> resp = new HashMap<>();
-            resp.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(resp);
+            // In a real app, use a Global Exception Handler
+            // For now, returning a generic response
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
 
