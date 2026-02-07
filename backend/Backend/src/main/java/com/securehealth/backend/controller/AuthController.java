@@ -1,9 +1,13 @@
 package com.securehealth.backend.controller;
 
 import com.securehealth.backend.dto.LoginRequest;
+import com.securehealth.backend.dto.LoginResponse;
 import com.securehealth.backend.dto.RegistrationRequest;
 import com.securehealth.backend.model.Login;
 import com.securehealth.backend.service.AuthService;
+import jakarta.servlet.http.Cookie;            
+import jakarta.servlet.http.HttpServletRequest;  
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -56,6 +60,7 @@ public class AuthController {
             resp.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
         }
+
     }
 
     /**
@@ -79,23 +84,42 @@ public class AuthController {
      *
      * @param request Contains email and password from the client
      * @return HTTP 200 with authentication status, or HTTP 401 if credentials are invalid
+     * Authenticates user and sets Secure HttpOnly Cookie.
+     * Endpoint: POST /api/auth/login
      */
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> loginUser(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request,
+                                   HttpServletResponse response,
+                                   HttpServletRequest httpRequest) {
         try {
-            String result = authService.authenticateUser(request.getEmail(), request.getPassword());
 
-            Map<String, Object> resp = new HashMap<>();
+            // 1. Call Service
+            LoginResponse loginData = authService.login(
+                request.getEmail(), 
+                request.getPassword(),
+                httpRequest.getRemoteAddr(),
+                httpRequest.getHeader("User-Agent")
+            );
 
-            if ("OTP_REQUIRED".equals(result)) {
-                resp.put("message", "OTP sent to registered email");
-                resp.put("status", "OTP_REQUIRED");
-                return ResponseEntity.ok(resp);
+            // [NEW] Check for OTP Requirement
+            if ("OTP_REQUIRED".equals(loginData.getStatus())) {
+                // Return immediately. DO NOT set cookies.
+                return ResponseEntity.ok(loginData); 
             }
 
-            resp.put("message", "Login successful");
-            resp.put("status", "LOGIN_SUCCESS");
-            return ResponseEntity.ok(resp);
+            // 2. If we get here, Login is fully successful. Set the Cookie.
+            Cookie refreshCookie = new Cookie("refreshToken", loginData.getRefreshToken());
+            refreshCookie.setHttpOnly(true);
+            refreshCookie.setSecure(false); // True in Prod
+            refreshCookie.setPath("/api/auth");
+            refreshCookie.setMaxAge(7 * 24 * 60 * 60);
+
+            response.addCookie(refreshCookie);
+
+            // 3. Hide Refresh Token from JSON
+            loginData.setRefreshToken(null); 
+
+            return ResponseEntity.ok(loginData);
 
         } catch (RuntimeException e) {
             Map<String, Object> resp = new HashMap<>();
@@ -150,4 +174,24 @@ public class AuthController {
 
 
 
+    
+    // --- LOGOUT (NEW - TASK #12515) ---
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken,
+                                    HttpServletResponse response) {
+        
+        // 1. Invalidate in DB
+        if(refreshToken != null) authService.logout(refreshToken);
+
+        // 2. Kill the Cookie
+        Cookie cookie = new Cookie("refreshToken", null);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/api/auth");
+        cookie.setMaxAge(0); // Expires immediately
+        
+        response.addCookie(cookie);
+        
+        return ResponseEntity.ok("Logged out successfully");
+    }
 }

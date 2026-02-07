@@ -2,14 +2,23 @@ package com.securehealth.backend.service;
 
 import com.securehealth.backend.model.Login;
 import com.securehealth.backend.model.Role;
+import com.securehealth.backend.model.Session; // [FIXED] Added Import
 import com.securehealth.backend.repository.LoginRepository;
+import com.securehealth.backend.repository.SessionRepository; // [FIXED] Added Import
+import com.securehealth.backend.dto.LoginResponse; // [FIXED] Added Import
+import com.securehealth.backend.util.JwtUtil;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Random;
 
+import org.springframework.transaction.annotation.Transactional; // [FIXED] Added Import
 
+import java.time.LocalDateTime;
+import java.security.MessageDigest;
+import java.util.Base64;
 import java.util.Optional;
 
 /**
@@ -32,68 +41,51 @@ public class AuthService {
     @Autowired
     private EmailService emailService;
 
+    private SessionRepository sessionRepository; // Now this will work!
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     /**
      * Registers a new user.
-     * <p>
-     * Creates a new record in the 'login' table with a secure Argon2 hash.
-     * </p>
-     *
-     * @param email       The user's email.
-     * @param rawPassword The plaintext password.
-     * @param role        The selected role.
-     * @return The saved Login entity.
-     * @throws RuntimeException if the email is already taken.
      */
+    @Transactional // Now this will work!
     public Login registerUser(String email, String rawPassword, Role role) {
-        // 1. Duplicate Check
         if (loginRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already taken");
         }
 
-        // 2. Hash Password (Argon2)
         String hash = passwordEncoder.encode(rawPassword);
 
-        // 3. Create Entity
         Login newUser = new Login();
         newUser.setEmail(email);
         newUser.setPasswordHash(hash);
         newUser.setRole(role);
-
-        // 4. Save to DB
+        
         return loginRepository.save(newUser);
     }
 
     /**
-     * Authenticates a user during Login.
-     * <p>
-     * 1. Finds user by email.
-     * 2. Checks if the account is locked (Active Defense).
-     * 3. Verifies the password hash.
-     * </p>
-     *
-     * @param email       The input email.
-     * @param rawPassword The input password.
-     * @return The Login entity if successful.
-     * @throws RuntimeException if credentials are invalid or account is locked.
+     * Authenticates user and generates tokens.
      */
-    public String authenticateUser(String email, String rawPassword) {
-
+    @Transactional
+    public LoginResponse login(String email, String rawPassword, String ipAddress, String userAgent) {
+        // 1. Verify User
         Login user = loginRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
-        if (user.isLocked()) {
-            throw new RuntimeException("Account is locked due to too many failed attempts.");
-        }
+        if (user.isLocked()) throw new RuntimeException("Account locked");
 
         if (!passwordEncoder.matches(rawPassword, user.getPasswordHash())) {
             throw new RuntimeException("Invalid credentials");
         }
 
-        // 2FA CHECK
+
+        // --- 1. 2FA CHECK (Priority) ---
+        // If user is DOCTOR/ADMIN and has 2FA enabled, stop and send OTP.
         if ((user.getRole() == Role.DOCTOR || user.getRole() == Role.ADMIN)
                 && user.isTwoFactorEnabled()) {
 
@@ -104,30 +96,34 @@ public class AuthService {
 
             emailService.sendOtp(user.getEmail(), otp);
 
-            return "OTP_REQUIRED";  // stops login until OTP verified
+            // Return "OTP_REQUIRED" status with NULL tokens
+            return new LoginResponse(null, null, null, "OTP_REQUIRED");
         }
 
-        return "LOGIN_SUCCESS";
+        // --- 2. GENERATE TOKENS (Standard Login) ---
+        // If 2FA is not required (or disabled), proceed to generate JWTs.
+        String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name(), user.getUserId());
+        String refreshToken = jwtUtil.generateRefreshToken();
+
+        // 3. Hash Refresh Token
+        String refreshTokenHash = hashToken(refreshToken);
+
+        // 4. Create Session in DB
+        Session session = new Session();
+        session.setUser(user);
+        session.setRefreshTokenHash(refreshTokenHash);
+        session.setIpAddress(ipAddress);
+        session.setUserAgent(userAgent);
+        session.setExpiresAt(LocalDateTime.now().plusDays(7)); 
+        sessionRepository.save(session);
+
+        return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
     }
 
-
     /**
-     * Verifies the One-Time Password (OTP) for a user during 2FA login.
-     * <p>
-     * Checks that the OTP matches the stored value and that it has not expired.
-     * On success, the OTP is cleared from the database to prevent reuse.
-     * </p>
-     *
-     * @param email The email of the user performing OTP verification.
-     * @param otp   The OTP value entered by the user.
-     * @return "LOGIN_SUCCESS" if OTP is valid.
-     * @throws RuntimeException if the OTP is invalid or expired.
-     * @author Diya
+     * Verifies OTP and Completes Login (Generates Tokens).
      */
-    public String verifyOtp(String email, String otp) {
-        public String verifyOtp
-    }(String email, String otp) {
-
+    public LoginResponse verifyOtp(String email, String otp, String ipAddress, String userAgent) {
         Login user = loginRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -135,13 +131,55 @@ public class AuthService {
                 user.getOtp().equals(otp) &&
                 user.getOtpExpiry().isAfter(LocalDateTime.now())) {
 
+            // 1. Clear OTP to prevent reuse
             user.setOtp(null);
             loginRepository.save(user);
 
-            return "LOGIN_SUCCESS";
+            // 2. Generate Tokens (Login is now successful!)
+            String accessToken = jwtUtil.generateAccessToken(user.getEmail(), user.getRole().name(), user.getUserId());
+            String refreshToken = jwtUtil.generateRefreshToken();
+            String refreshTokenHash = hashToken(refreshToken);
+
+            // 3. Create Session
+            Session session = new Session();
+            session.setUser(user);
+            session.setRefreshTokenHash(refreshTokenHash);
+            session.setIpAddress(ipAddress);
+            session.setUserAgent(userAgent);
+            session.setExpiresAt(LocalDateTime.now().plusDays(7)); 
+            sessionRepository.save(session);
+
+            return new LoginResponse(accessToken, refreshToken, user.getRole().name(), "LOGIN_SUCCESS");
         }
 
         throw new RuntimeException("Invalid or expired OTP");
+    }
+
+    /**
+     * Revokes a session (Logout).
+     */
+    @Transactional
+    public void logout(String refreshToken) {
+        if (refreshToken == null) return;
+        
+        String hash = hashToken(refreshToken);
+        
+        sessionRepository.findByRefreshTokenHash(hash)
+            .ifPresent(session -> {
+                session.setRevoked(true);
+                sessionRepository.save(session);
+            });
+    }
+
+    private String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes());
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (Exception e) {
+            throw new RuntimeException("Error hashing token");
+        }
+    }
     }
 
 
