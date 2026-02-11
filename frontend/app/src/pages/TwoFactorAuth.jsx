@@ -39,10 +39,10 @@ export default function TwoFactorAuth() {
 
   // Redirect if no 2FA session
   useEffect(() => {
-    if (!tempToken || !user) {
+    if (!user) {
       navigate('/login');
     }
-  }, [tempToken, user, navigate]);
+  }, [user, navigate]);
 
   // Countdown timer for resend
   useEffect(() => {

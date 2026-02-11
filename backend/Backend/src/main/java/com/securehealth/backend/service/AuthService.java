@@ -178,6 +178,14 @@ public class AuthService {
 
 
         // --- 1. 2FA CHECK (Priority) ---
+        // Enforce 2FA for DOCTOR/ADMIN accounts
+        if (user.getRole() == Role.DOCTOR || user.getRole() == Role.ADMIN) {
+            if (!user.isTwoFactorEnabled()) {
+                user.setTwoFactorEnabled(true);
+                loginRepository.save(user);
+            }
+        }
+
         // If user is DOCTOR/ADMIN and has 2FA enabled, stop and send OTP.
         if ((user.getRole() == Role.DOCTOR || user.getRole() == Role.ADMIN)
                 && user.isTwoFactorEnabled()) {
@@ -194,7 +202,7 @@ public class AuthService {
             }
 
             // Return "OTP_REQUIRED" status with NULL tokens
-            return new LoginResponse(null, null, null, "OTP_REQUIRED");
+            return new LoginResponse(null, null, user.getRole().name(), "OTP_REQUIRED");
         }
 
         // --- 2. GENERATE TOKENS (Standard Login) ---
