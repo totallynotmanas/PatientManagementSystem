@@ -44,7 +44,7 @@ describe('CreateAccount Page', () => {
 
         const nameInput = screen.getByPlaceholderText(/john doe/i);
         const emailInput = screen.getByPlaceholderText(/you@example.com/i);
-        const passwordInput = screen.getByPlaceholderText(/min 6 characters/i);
+        const passwordInput = screen.getByPlaceholderText(/min 12 characters/i);
         const confirmInput = screen.getByPlaceholderText(/re-enter password/i);
 
         await userEvent.type(nameInput, 'John Doe');
@@ -65,7 +65,7 @@ describe('CreateAccount Page', () => {
 
         const nameInput = screen.getByPlaceholderText(/john doe/i);
         const emailInput = screen.getByPlaceholderText(/you@example.com/i);
-        const passwordInput = screen.getByPlaceholderText(/min 6 characters/i);
+        const passwordInput = screen.getByPlaceholderText(/min 12 characters/i);
         const confirmInput = screen.getByPlaceholderText(/re-enter password/i);
 
         await userEvent.type(nameInput, 'John Doe');
@@ -77,7 +77,7 @@ describe('CreateAccount Page', () => {
         fireEvent.click(submitButton);
 
         await waitFor(() => {
-            expect(screen.getByText(/password must be at least 6 characters/i)).toBeInTheDocument();
+            expect(screen.getByText(/password must be at least 12 characters/i)).toBeInTheDocument();
         });
     });
 

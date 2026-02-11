@@ -1,68 +1,101 @@
-## for registration
-const registerUser = async (email, password, role) => {
-  const response = await fetch("http://localhost:8081/api/auth/register", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password, role }),
-  });
+## Base URL
+http://localhost:8081/api
 
-  if (!response.ok) {
-    throw new Error("Registration failed");
-  }
-  return await response.json(); // Returns User object
-};
+## Register
+POST /api/auth/register
 
-## for login
-const loginUser = async (email, password) => {
-  const response = await fetch("http://localhost:8081/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include", // CRITICAL: Allows browser to save the secure cookie
-    body: JSON.stringify({ email, password }),
-  });
+```json
+{
+  "email": "doctor@hospital.com",
+  "password": "StrongPassword123!",
+  "role": "DOCTOR",
+  "full_name": "Dr Jane Smith",
+  "license_number": "LIC-12345",
+  "specialization": "Cardiology"
+}
+```
 
-  const data = await response.json();
+```json
+{
+  "message": "User registered successfully",
+  "userId": 18,
+  "role": "DOCTOR"
+}
+```
 
-  if (data.status === "OTP_REQUIRED") {
-    console.log("OTP Required! Redirect to OTP screen.");
-    return { status: "OTP_REQUIRED", email: email };
-  } 
-  
-  if (data.accessToken) {
-    console.log("Login Success! Token:", data.accessToken);
-    // TODO: Save accessToken to React Context or State
-    return { status: "SUCCESS", token: data.accessToken, role: data.role };
-  }
+## Login
+POST /api/auth/login
 
-  throw new Error("Login failed");
-};
+```json
+{
+  "email": "doctor@hospital.com",
+  "password": "StrongPassword123!"
+}
+```
 
-## for otp
-const verifyOtp = async (email, otpCode) => {
-  const response = await fetch("http://localhost:8081/api/auth/verify-otp", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include", // CRITICAL: Sets the session cookie after OTP check
-    body: JSON.stringify({ email, otp: otpCode }),
-  });
+OTP-required response:
 
-  if (!response.ok) {
-    throw new Error("Invalid OTP");
-  }
+```json
+{
+  "accessToken": null,
+  "refreshToken": null,
+  "role": "DOCTOR",
+  "status": "OTP_REQUIRED"
+}
+```
 
-  const data = await response.json();
-  console.log("OTP Verified! Access Token:", data.accessToken);
-  // TODO: Save accessToken to React Context or State
-  return data;
-};
+Login-success response:
 
-## for logout
-const logoutUser = async () => {
-  await fetch("http://localhost:8081/api/auth/logout", {
-    method: "POST",
-    credentials: "include", // CRITICAL: Sends the cookie so server can delete it
-  });
+```json
+{
+  "accessToken": "<jwt>",
+  "refreshToken": "<refresh>",
+  "role": "PATIENT",
+  "status": "LOGIN_SUCCESS"
+}
+```
 
-  console.log("Logged out successfully");
-  // TODO: Clear accessToken from React State
-};
+## Verify OTP
+POST /api/auth/verify-otp
+
+```json
+{
+  "email": "doctor@hospital.com",
+  "otp": "123456"
+}
+```
+
+## Resend OTP
+POST /api/auth/resend-otp
+
+```json
+{
+  "email": "doctor@hospital.com"
+}
+```
+
+## Forgot Password
+POST /api/auth/forgot-password
+
+```json
+{
+  "email": "user@hospital.com"
+}
+```
+
+## Validate Reset Token
+GET /api/auth/validate-reset-token?token=<token>
+
+## Reset Password
+POST /api/auth/reset-password
+
+```json
+{
+  "token": "<token>",
+  "newPassword": "NewStrongPassword123!",
+  "confirmPassword": "NewStrongPassword123!"
+}
+```
+
+## Logout
+POST /api/auth/logout

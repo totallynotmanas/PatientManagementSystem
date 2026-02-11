@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 
 import Login from './pages/login.jsx';
 import CreateAccount from './pages/createAccount.jsx';
@@ -32,6 +33,12 @@ import LabHistory from './pages/lab/History.jsx';
 import AdminDashboard from './pages/admin/Dashboard.jsx';
 
 function App() {
+  const { user } = useAuth();
+  const displayName = user?.fullName || user?.full_name || user?.email || 'User';
+  const roleFromUser = user?.role ? user.role.toLowerCase() : null;
+  const allowedRoles = new Set(['doctor', 'patient', 'nurse', 'lab', 'admin']);
+  const resolveRole = (fallback) => (allowedRoles.has(roleFromUser) ? roleFromUser : fallback);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -43,7 +50,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Doctor Dashboard */}
-        <Route path="/dashboard/doctor/*" element={<DashboardLayout role="doctor" userName="Dr. Smith" />}>
+        <Route path="/dashboard/doctor/*" element={<DashboardLayout role={resolveRole('doctor')} userName={displayName} />}>
 
           <Route path="" element={<DoctorDashboard />} />
           <Route path="patients" element={<Patients />} />
@@ -56,7 +63,7 @@ function App() {
         </Route>
 
         {/* Patient Dashboard */}
-        <Route path="/dashboard/patient/*" element={<DashboardLayout role="patient" userName="John Doe" />}>
+        <Route path="/dashboard/patient/*" element={<DashboardLayout role={resolveRole('patient')} userName={displayName} />}>
           <Route path="" element={<PatientDashboard />} />
           <Route path="appointments" element={<PatientAppointments />} />
           <Route path="labs" element={<PatientLabResults />} />
@@ -66,13 +73,13 @@ function App() {
         </Route>
 
         {/* Nurse Dashboard */}
-        <Route path="/dashboard/nurse/*" element={<DashboardLayout role="nurse" userName="Nurse Joy" />}>
+        <Route path="/dashboard/nurse/*" element={<DashboardLayout role={resolveRole('nurse')} userName={displayName} />}>
           <Route path="" element={<NurseDashboard />} />
           <Route path="vitals" element={<NurseVitals />} />
         </Route>
 
         {/* Lab Dashboard */}
-        <Route path="/dashboard/lab/*" element={<DashboardLayout role="lab" userName="Tech Mike" />}>
+        <Route path="/dashboard/lab/*" element={<DashboardLayout role={resolveRole('lab')} userName={displayName} />}>
           <Route path="" element={<LabDashboard />} />
           <Route path="orders" element={<LabOrders />} />
           <Route path="orders/:id" element={<LabOrderDetail />} />
@@ -81,7 +88,7 @@ function App() {
         </Route>
 
         {/* Admin Dashboard */}
-        <Route path="/dashboard/admin/*" element={<DashboardLayout role="admin" userName="Admin User" />}>
+        <Route path="/dashboard/admin/*" element={<DashboardLayout role={resolveRole('admin')} userName={displayName} />}>
           <Route path="" element={<AdminDashboard />} />
         </Route>
       </Routes>

@@ -10,6 +10,8 @@ import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.repository.PasswordHistoryRepository;
 import com.securehealth.backend.repository.PasswordResetTokenRepository;
 import com.securehealth.backend.repository.SessionRepository;
+import com.securehealth.backend.repository.PatientProfileRepository;
+import com.securehealth.backend.repository.DoctorProfileRepository;
 import com.securehealth.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,6 +54,12 @@ class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private PatientProfileRepository patientProfileRepository;
+
+    @Mock
+    private DoctorProfileRepository doctorProfileRepository;
+
     @InjectMocks
     private AuthService authService;
 
@@ -78,8 +86,17 @@ class AuthServiceTest {
         when(loginRepository.existsByEmail(email)).thenReturn(false);
         when(passwordEncoder.encode(password)).thenReturn("hashedPassword");
         when(loginRepository.save(any(Login.class))).thenReturn(testUser);
+        when(doctorProfileRepository.save(any())).thenReturn(null);
 
-        Login result = authService.registerUser(email, password, role);
+        com.securehealth.backend.dto.RegistrationRequest req = new com.securehealth.backend.dto.RegistrationRequest();
+        req.setEmail(email);
+        req.setPassword(password);
+        req.setRole(role);
+        req.setFullName("Dr. Test");
+        req.setLicenseNumber("LIC-12345");
+        req.setSpecialization("General");
+
+        Login result = authService.registerUser(req);
 
         assertNotNull(result);
         verify(loginRepository).save(any(Login.class));
@@ -285,7 +302,7 @@ class AuthServiceTest {
         when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
             .thenReturn(Optional.of(mockResetToken));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false); // Password not reused
-        when(passwordHistoryRepository.findRecentPasswords(any(Login.class), anyInt()))
+        when(passwordHistoryRepository.findByUserOrderByCreatedAtDesc(any(Login.class), any(org.springframework.data.domain.Pageable.class)))
             .thenReturn(Collections.emptyList());
         when(passwordEncoder.encode(newPassword)).thenReturn("newHashedPassword");
 
@@ -358,7 +375,7 @@ class AuthServiceTest {
         // Current password doesn't match
         when(passwordEncoder.matches(newPassword, testUser.getPasswordHash())).thenReturn(false);
         // But password in history matches (reuse detected)
-        when(passwordHistoryRepository.findRecentPasswords(any(Login.class), anyInt()))
+        when(passwordHistoryRepository.findByUserOrderByCreatedAtDesc(any(Login.class), any(org.springframework.data.domain.Pageable.class)))
             .thenReturn(List.of(historyEntry));
         when(passwordEncoder.matches(newPassword, historyEntry.getPasswordHash())).thenReturn(true);
 

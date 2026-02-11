@@ -54,8 +54,14 @@ public class AuthControllerTest {
     public void testRegisterUser_Success() throws Exception {
         RegistrationRequest request = new RegistrationRequest();
         request.setEmail("test@example.com");
-        request.setPassword("password1234");
+        request.setPassword("SecurePassword123!");
         request.setRole(Role.PATIENT);
+        request.setFullName("Test User");
+
+        com.securehealth.backend.model.Login created = new com.securehealth.backend.model.Login();
+        created.setUserId(99L);
+        created.setRole(Role.PATIENT);
+        when(authService.registerUser(any(RegistrationRequest.class))).thenReturn(created);
 
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)

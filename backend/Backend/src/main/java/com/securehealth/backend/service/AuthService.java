@@ -33,6 +33,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Optional;
+import org.springframework.data.domain.PageRequest;
 
 /**
  * Service Layer for Identity Management.
@@ -375,7 +376,7 @@ public class AuthService {
      */
     public boolean validateResetToken(String token) {
         String tokenHash = hashToken(token);
-        Optional<PasswordResetToken> resetTokenOpt = 
+        Optional<PasswordResetToken> resetTokenOpt =
             resetTokenRepository.findValidToken(tokenHash, LocalDateTime.now());
         return resetTokenOpt.isPresent();
     }
@@ -444,7 +445,7 @@ public class AuthService {
 
         // Check password history
         List<PasswordHistory> history = passwordHistoryRepository
-            .findRecentPasswords(user, PASSWORD_HISTORY_LIMIT);
+            .findByUserOrderByCreatedAtDesc(user, PageRequest.of(0, PASSWORD_HISTORY_LIMIT));
 
         for (PasswordHistory entry : history) {
             if (passwordEncoder.matches(newPassword, entry.getPasswordHash())) {

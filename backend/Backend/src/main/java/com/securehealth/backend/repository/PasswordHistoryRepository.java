@@ -36,10 +36,7 @@ public interface PasswordHistoryRepository extends JpaRepository<PasswordHistory
      * @param limit Maximum number of passwords to return.
      * @return List of PasswordHistory entries, most recent first.
      */
-    @Query("SELECT ph FROM PasswordHistory ph WHERE ph.user = :user " +
-           "ORDER BY ph.createdAt DESC LIMIT :limit")
-    List<PasswordHistory> findRecentPasswords(@Param("user") Login user, 
-                                               @Param("limit") int limit);
+    java.util.List<PasswordHistory> findByUserOrderByCreatedAtDesc(Login user, org.springframework.data.domain.Pageable pageable);
 
     /**
      * Gets all password history entries for a user.

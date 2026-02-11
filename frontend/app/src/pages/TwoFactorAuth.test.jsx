@@ -3,16 +3,17 @@ import { render, screen, fireEvent, waitFor } from '../test-utils';
 import userEvent from '@testing-library/user-event';
 import TwoFactorAuth from './TwoFactorAuth';
 
-// Mock the auth module
 jest.mock('../mocks/auth', () => ({
-    mockVerifyOTP: jest.fn(),
-    mockVerifyBackupCode: jest.fn(),
-    mockResendOTP: jest.fn(),
     RESEND_COOLDOWN_SECONDS: 30,
     MAX_VERIFICATION_ATTEMPTS: 5,
 }));
 
-import { mockVerifyOTP, mockVerifyBackupCode, mockResendOTP } from '../mocks/auth';
+jest.mock('../services/supabaseAuth', () => ({
+    verifyOtp: jest.fn(),
+    resendOtp: jest.fn(),
+}));
+
+import { verifyOtp, resendOtp } from '../services/supabaseAuth';
 
 // Mock useNavigate
 const mockNavigate = jest.fn();
@@ -128,7 +129,7 @@ describe('TwoFactorAuth Page', () => {
     });
 
     test('verifies OTP successfully', async () => {
-        mockVerifyOTP.mockResolvedValue({ 
+        verifyOtp.mockResolvedValue({ 
             success: true, 
             user: { id: '1', role: 'patient' } 
         });
@@ -144,13 +145,12 @@ describe('TwoFactorAuth Page', () => {
         await userEvent.type(inputs[5], '6');
         
         await waitFor(() => {
-            // Component calls mockVerifyOTP(code, tempToken)
-            expect(mockVerifyOTP).toHaveBeenCalledWith('123456', 'temp-token-123');
+            expect(verifyOtp).toHaveBeenCalledWith('test@example.com', '123456');
         });
     });
 
     test('shows error for invalid OTP', async () => {
-        mockVerifyOTP.mockResolvedValue({ 
+        verifyOtp.mockResolvedValue({ 
             success: false, 
             error: 'Invalid code' 
         });

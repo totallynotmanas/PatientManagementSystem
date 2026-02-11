@@ -55,7 +55,7 @@ describe('Login Page', () => {
         fireEvent.blur(passwordInput);
         
         await waitFor(() => {
-            expect(screen.getByText(/password must be at least 6 characters/i)).toBeInTheDocument();
+            expect(screen.getByText(/password must be at least 12 characters/i)).toBeInTheDocument();
         });
     });
 

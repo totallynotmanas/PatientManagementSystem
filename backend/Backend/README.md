@@ -20,46 +20,59 @@ Backend/
 │   ├── main/
 │   │   ├── java/com/securehealth/backend/
 │   │   │   ├── config/
-│   │   │   │   └── SecurityConfig.java          # Security & password encoder config
+│   │   │   │   └── SecurityConfig.java
 │   │   │   ├── controller/
-│   │   │   │   └── AuthController.java          # REST endpoints for authentication
+│   │   │   │   └── AuthController.java
 │   │   │   ├── dto/
-│   │   │   │   ├── ForgotPasswordRequest.java   # DTO for forgot password
-│   │   │   │   ├── LoginRequest.java            # DTO for login
-│   │   │   │   ├── LoginResponse.java           # DTO for login response
-│   │   │   │   ├── RegistrationRequest.java     # DTO for registration
-│   │   │   │   └── ResetPasswordRequest.java    # DTO for password reset
+│   │   │   │   ├── ForgotPasswordRequest.java
+│   │   │   │   ├── LoginRequest.java
+│   │   │   │   ├── LoginResponse.java
+│   │   │   │   ├── OtpRequest.java
+│   │   │   │   ├── RegistrationRequest.java
+│   │   │   │   ├── RegistrationResponse.java
+│   │   │   │   └── ResetPasswordRequest.java
+│   │   │   ├── exception/
+│   │   │   │   └── GlobalExceptionHandler.java
 │   │   │   ├── model/
-│   │   │   │   ├── Login.java                   # User entity
-│   │   │   │   ├── PasswordHistory.java         # Password history entity
-│   │   │   │   ├── PasswordResetToken.java      # Reset token entity
-│   │   │   │   ├── Role.java                    # Role enum
-│   │   │   │   └── Session.java                 # Session entity
+│   │   │   │   ├── DoctorProfile.java
+│   │   │   │   ├── Login.java
+│   │   │   │   ├── PasswordHistory.java
+│   │   │   │   ├── PasswordResetToken.java
+│   │   │   │   ├── PatientProfile.java
+│   │   │   │   ├── Role.java
+│   │   │   │   ├── SecurityLog.java
+│   │   │   │   └── Session.java
 │   │   │   ├── repository/
-│   │   │   │   ├── LoginRepository.java         # User data access
+│   │   │   │   ├── DoctorProfileRepository.java
+│   │   │   │   ├── LoginRepository.java
 │   │   │   │   ├── PasswordHistoryRepository.java
 │   │   │   │   ├── PasswordResetTokenRepository.java
-│   │   │   │   └── SessionRepository.java       # Session data access
+│   │   │   │   ├── PatientProfileRepository.java
+│   │   │   │   ├── SecurityLogRepository.java
+│   │   │   │   └── SessionRepository.java
 │   │   │   ├── service/
-│   │   │   │   ├── AuthService.java             # Authentication business logic
-│   │   │   │   ├── EmailService.java            # Email sending service
-│   │   │   │   └── OtpRequest.java              # OTP request model
+│   │   │   │   ├── AuthService.java
+│   │   │   │   ├── EmailService.java
+│   │   │   │   └── SecurityLogService.java
 │   │   │   ├── util/
-│   │   │   │   └── JwtUtil.java                 # JWT token utilities
-│   │   │   └── SecureHealthApplication.java     # Main application entry
+│   │   │   │   ├── EncryptionUtil.java
+│   │   │   │   └── JwtUtil.java
+│   │   │   └── SecureHealthApplication.java
 │   │   └── resources/
-│   │       └── application.properties           # App configuration
+│   │       └── application.properties
 │   └── test/
 │       └── java/com/securehealth/backend/
 │           ├── controller/
-│           │   └── AuthControllerTest.java      # Controller integration tests
-│           ├── service/
-│           │   └── AuthServiceTest.java         # Service unit tests
+│           │   └── AuthControllerTest.java
 │           ├── repository/
+│           │   └── LoginRepositoryTest.java
+│           ├── service/
+│           │   └── AuthServiceTest.java
 │           ├── util/
-│           └── BackendApplicationTests.java     # Context load test
-├── pom.xml                                      # Maven dependencies
-└── Dockerfile                                   # Docker configuration
+│           │   └── JwtUtilTest.java
+│           └── BackendApplicationTests.java
+├── pom.xml
+└── Dockerfile
 ```
 
 ## API Endpoints
@@ -71,6 +84,7 @@ Backend/
 | POST | `/api/auth/register` | Register a new user |
 | POST | `/api/auth/login` | Authenticate user |
 | POST | `/api/auth/verify-otp` | Verify 2FA OTP code |
+| POST | `/api/auth/resend-otp` | Resend OTP email |
 | POST | `/api/auth/logout` | Logout and invalidate session |
 
 ### Password Recovery
@@ -186,7 +200,7 @@ docker-compose up -d postgres_db
 # 2. Run the application
 mvn spring-boot:run
 
-# 3. API available at http://localhost:8080
+# 3. API available at http://localhost:8080 (local run)
 ```
 
 ## Request/Response Examples

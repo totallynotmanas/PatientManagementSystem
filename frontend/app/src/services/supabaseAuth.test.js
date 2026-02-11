@@ -30,6 +30,7 @@ describe('supabaseAuth Service', () => {
          success: true,
          user: expect.objectContaining({ email: 'test@example.com' }),
          session: { user: expect.objectContaining({ email: 'test@example.com' }) },
+         status: 'Login successful',
       });
    });
 

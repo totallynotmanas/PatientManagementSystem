@@ -6,6 +6,7 @@ const normalizedApiUrl = envApiUrl
 const API_BASE_URL = normalizedApiUrl || `http://localhost:8081/api`;
 const AUTH_URL = `${API_BASE_URL}/auth`;
 const STORAGE_KEY = 'secure_health_user';
+const PROFILE_STORAGE_KEY = 'secure_health_profiles';
 
 const fetchWithTimeout = async (url, options = {}, timeoutMs = 12000) => {
    const controller = new AbortController();
@@ -44,6 +45,28 @@ const getSession = () => {
    return data ? JSON.parse(data) : null;
 };
 
+const getProfiles = () => {
+   const data = localStorage.getItem(PROFILE_STORAGE_KEY);
+   return data ? JSON.parse(data) : {};
+};
+
+const saveProfileName = (email, fullName) => {
+   if (!email || !fullName) {
+      return;
+   }
+   const profiles = getProfiles();
+   profiles[email] = fullName;
+   localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profiles));
+};
+
+const getProfileName = (email) => {
+   if (!email) {
+      return null;
+   }
+   const profiles = getProfiles();
+   return profiles[email] || null;
+};
+
 export const signup = async (email, password, userData = {}) => {
    try {
       const role = userData.role || 'PATIENT';
@@ -62,7 +85,11 @@ export const signup = async (email, password, userData = {}) => {
 
       // Backend returns success message but no user object for register
       // We auto-login or ask user to login. Here we'll simulate auto-login for UX
-      const user = { email, role };
+      const fullName = userData.full_name || userData.fullName;
+      const user = { email, role, fullName };
+      if (fullName) {
+         saveProfileName(email, fullName);
+      }
       // Note: In a real app we might require login after register, 
       // but for "integration" we'll set session
       saveSession(user);
@@ -99,9 +126,15 @@ export const login = async (email, password) => {
 
       let data = await response.json();
       const status = data.status || data.message || 'LOGIN_SUCCESS';
-      const user = { email: data.email || email, role: data.role || 'PATIENT' };
+      const resolvedEmail = data.email || email;
+      const storedName = getProfileName(resolvedEmail);
+      const fullName = data.full_name || data.fullName || storedName;
+      const user = { email: resolvedEmail, role: data.role || 'PATIENT', fullName };
       if (status === 'OTP_REQUIRED') {
          return { status, user };
+      }
+      if (fullName) {
+         saveProfileName(resolvedEmail, fullName);
       }
       saveSession(user);
       return { status, user, ...data };
@@ -254,7 +287,15 @@ export const verifyOtp = async (email, otp) => {
       });
       const data = await response.json();
       if (response.ok) {
-         return { success: true, ...data };
+         const resolvedEmail = email;
+         const storedName = getProfileName(resolvedEmail);
+         const fullName = data.full_name || data.fullName || storedName;
+         const user = { email: resolvedEmail, role: data.role || 'PATIENT', fullName };
+         if (fullName) {
+            saveProfileName(resolvedEmail, fullName);
+         }
+         saveSession(user);
+         return { success: true, user, ...data };
       } else {
          return { success: false, error: data.message || 'Invalid or expired OTP' };
       }

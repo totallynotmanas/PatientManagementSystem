@@ -43,9 +43,9 @@ public interface PasswordResetTokenRepository extends JpaRepository<PasswordRese
      * @return An Optional containing the valid PasswordResetToken if found.
      */
     @Query("SELECT t FROM PasswordResetToken t WHERE t.tokenHash = :tokenHash " +
-           "AND t.used = false AND t.expiresAt > :now")
-    Optional<PasswordResetToken> findValidToken(@Param("tokenHash") String tokenHash, 
-                                                 @Param("now") LocalDateTime now);
+           "AND t.used = false AND t.expiresAt >= :currentTime")
+    Optional<PasswordResetToken> findValidToken(@Param("tokenHash") String tokenHash,
+                                                @Param("currentTime") LocalDateTime currentTime);
 
     /**
      * Invalidates all existing tokens for a user.
