@@ -21,12 +21,15 @@ const getSession = () => {
    return data ? JSON.parse(data) : null;
 };
 
-export const signup = async (email, password, role = 'PATIENT') => {
+export const signup = async (email, password, userData = {}) => {
    try {
+      const role = userData.role || 'PATIENT';
+      const body = { email, password, role, ...userData };
+
       const response = await fetch(`${AUTH_URL}/register`, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
-         body: JSON.stringify({ email, password, role }),
+         body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -49,8 +52,7 @@ export const signup = async (email, password, role = 'PATIENT') => {
 
 export const signUp = async (email, password, userData) => {
    try {
-      const role = userData?.role || 'PATIENT';
-      const result = await signup(email, password, role);
+      const result = await signup(email, password, userData);
       // Construct session object matching what AuthContext expects
       const session = { user: result.user };
       return { success: true, user: result.user, session };
@@ -143,5 +145,78 @@ export const onAuthStateChange = (callback) => {
 // Notify all listeners of auth state change
 const notifyAuthStateChange = (session) => {
    authStateListeners.forEach(listener => listener(session));
+};
+
+// Password Recovery Functions
+
+// Request password reset email
+export const forgotPassword = async (email) => {
+   try {
+      const response = await fetch(`${AUTH_URL}/forgot-password`, {
+         method: 'POST',
+         headers: {
+            'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+         return { success: true, message: data.message || 'Password reset email sent successfully' };
+      } else {
+         return { success: false, error: data.error || 'Failed to send password reset email' };
+      }
+   } catch (error) {
+      console.error('Forgot password error:', error);
+      return { success: false, error: 'Network error. Please try again.' };
+   }
+};
+
+// Validate password reset token
+export const validateResetToken = async (token) => {
+   try {
+      const response = await fetch(`${AUTH_URL}/validate-reset-token?token=${encodeURIComponent(token)}`, {
+         method: 'GET',
+         headers: {
+            'Content-Type': 'application/json',
+         },
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+         return { valid: true, message: data.message };
+      } else {
+         return { valid: false, error: data.error || 'Invalid or expired token' };
+      }
+   } catch (error) {
+      console.error('Validate token error:', error);
+      return { valid: false, error: 'Network error. Please try again.' };
+   }
+};
+
+// Reset password with token
+export const resetPassword = async (token, newPassword, confirmPassword) => {
+   try {
+      const response = await fetch(`${AUTH_URL}/reset-password`, {
+         method: 'POST',
+         headers: {
+            'Content-Type': 'application/json',
+         },
+         body: JSON.stringify({ token, newPassword, confirmPassword }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+         return { success: true, message: data.message || 'Password reset successfully' };
+      } else {
+         return { success: false, error: data.error || 'Failed to reset password' };
+      }
+   } catch (error) {
+      console.error('Reset password error:', error);
+      return { success: false, error: 'Network error. Please try again.' };
+   }
 };
 

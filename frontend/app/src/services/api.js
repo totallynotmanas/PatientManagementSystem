@@ -370,7 +370,7 @@ export const vitalSignsAPI = {
    },
 };
 
-export default {
+const api = {
    auth: authAPI,
    patients: patientAPI,
    appointments: appointmentAPI,
@@ -380,3 +380,5 @@ export default {
    doctors: doctorAPI,
    vitalSigns: vitalSignsAPI,
 };
+
+export default api;
