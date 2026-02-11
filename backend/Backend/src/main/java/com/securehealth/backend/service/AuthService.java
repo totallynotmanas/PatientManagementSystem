@@ -5,12 +5,18 @@ import com.securehealth.backend.model.PasswordHistory;
 import com.securehealth.backend.model.PasswordResetToken;
 import com.securehealth.backend.model.Role;
 import com.securehealth.backend.model.Session;
+import com.securehealth.backend.model.PatientProfile;
+import com.securehealth.backend.model.DoctorProfile;
 import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.repository.PasswordHistoryRepository;
 import com.securehealth.backend.repository.PasswordResetTokenRepository;
 import com.securehealth.backend.repository.SessionRepository;
+import com.securehealth.backend.repository.PatientProfileRepository;
+import com.securehealth.backend.repository.DoctorProfileRepository;
 import com.securehealth.backend.dto.LoginResponse;
+import com.securehealth.backend.dto.RegistrationRequest;
 import com.securehealth.backend.util.JwtUtil;
+import com.securehealth.backend.util.EncryptionUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -77,13 +83,40 @@ public class AuthService {
     @Value("${app.frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
+    @Autowired
+    private PatientProfileRepository patientProfileRepository;
+
+    @Autowired
+    private DoctorProfileRepository doctorProfileRepository;
+
+    @Autowired
+    private EncryptionUtil encryptionUtil;
+
     /**
      * Registers a new user.
      */
     @Transactional // Now this will work!
-    public Login registerUser(String email, String rawPassword, Role role) {
+    public Login registerUser(RegistrationRequest req) {
+        String email = req.getEmail();
+        String rawPassword = req.getPassword();
+        Role role = req.getRole();
+
         if (loginRepository.existsByEmail(email)) {
             throw new RuntimeException("Email already taken");
+        }
+
+        // Role-specific validation
+        if (role == Role.PATIENT) {
+            if (req.getFullName() == null || req.getFullName().isBlank()) {
+                throw new RuntimeException("Full name is required for patient");
+            }
+        } else if (role == Role.DOCTOR) {
+            if (req.getFullName() == null || req.getFullName().isBlank()) {
+                throw new RuntimeException("Full name is required for doctor");
+            }
+            if (req.getLicenseNumber() == null || req.getLicenseNumber().isBlank()) {
+                throw new RuntimeException("License number is required for doctor");
+            }
         }
 
         String hash = passwordEncoder.encode(rawPassword);
@@ -92,8 +125,40 @@ public class AuthService {
         newUser.setEmail(email);
         newUser.setPasswordHash(hash);
         newUser.setRole(role);
+        newUser.setTwoFactorEnabled(role == Role.DOCTOR || role == Role.ADMIN);
         
-        return loginRepository.save(newUser);
+        newUser = loginRepository.save(newUser);
+
+        // Create role-specific profile
+        if (role == Role.PATIENT) {
+            PatientProfile profile = new PatientProfile();
+            profile.setUser(newUser);
+            profile.setFullName(req.getFullName());
+            profile.setDateOfBirth(req.getDateOfBirth());
+            // Encrypt address if present
+            if (req.getAddress() != null && !req.getAddress().isEmpty()) {
+                profile.setAddressEncrypted(encryptionUtil.encrypt(req.getAddress()));
+            }
+            patientProfileRepository.save(profile);
+        } else if (role == Role.DOCTOR) {
+            DoctorProfile profile = new DoctorProfile();
+            profile.setUser(newUser);
+            profile.setFullName(req.getFullName());
+            profile.setLicenseNumber(req.getLicenseNumber());
+            profile.setSpecialization(req.getSpecialization());
+            doctorProfileRepository.save(profile);
+        }
+
+        return newUser;
+    }
+
+    // Backward-compatible overload for existing tests
+    public Login registerUser(String email, String rawPassword, Role role) {
+        RegistrationRequest req = new RegistrationRequest();
+        req.setEmail(email);
+        req.setPassword(rawPassword);
+        req.setRole(role);
+        return registerUser(req);
     }
 
     /**
@@ -122,7 +187,11 @@ public class AuthService {
             user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
             loginRepository.save(user);
 
-            emailService.sendOtp(user.getEmail(), otp);
+            try {
+                emailService.sendOtp(user.getEmail(), otp);
+            } catch (Exception mailEx) {
+                // Do not block login flow in dev if mail fails; OTP still required.
+            }
 
             // Return "OTP_REQUIRED" status with NULL tokens
             return new LoginResponse(null, null, null, "OTP_REQUIRED");
@@ -181,6 +250,29 @@ public class AuthService {
         }
 
         throw new RuntimeException("Invalid or expired OTP");
+    }
+
+    /**
+     * Resends a new OTP to the user's email and updates expiry.
+     */
+    public void resendOtp(String email) {
+        Login user = loginRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!(user.getRole() == Role.DOCTOR || user.getRole() == Role.ADMIN)) {
+            throw new RuntimeException("OTP not required for this role");
+        }
+
+        String otp = generateOtp();
+        user.setOtp(otp);
+        user.setOtpExpiry(LocalDateTime.now().plusMinutes(5));
+        loginRepository.save(user);
+
+        try {
+            emailService.sendOtp(user.getEmail(), otp);
+        } catch (Exception mailEx) {
+            // Swallow mail errors in dev; client will still see success
+        }
     }
 
     /**

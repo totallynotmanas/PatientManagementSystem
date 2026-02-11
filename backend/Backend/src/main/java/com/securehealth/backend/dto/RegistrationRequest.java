@@ -1,6 +1,8 @@
 package com.securehealth.backend.dto;
 
 import com.securehealth.backend.model.Role;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.LocalDate;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -27,4 +29,18 @@ public class RegistrationRequest {
 
     @NotNull(message = "Role is required")
     private Role role;
+
+    // Optional profile fields
+    @JsonProperty("full_name")
+    private String fullName;
+
+    @JsonProperty("date_of_birth")
+    private LocalDate dateOfBirth;
+
+    private String address;
+
+    @JsonProperty("license_number")
+    private String licenseNumber;
+
+    private String specialization;
 }

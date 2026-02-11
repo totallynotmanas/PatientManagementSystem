@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Heart, Shield, Clock, Users, Mail, Lock, Eye, EyeOff, AlertCircle, CheckCircle, X } from 'lucide-react';
-import { mockLogin } from '../mocks/auth';
+
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -44,8 +44,8 @@ export default function Login() {
     if (field === 'password') {
       if (!value) {
         errors.password = 'Password is required';
-      } else if (value.length < 6) {
-        errors.password = 'Password must be at least 6 characters';
+      } else if (value.length < 12) {
+        errors.password = 'Password must be at least 12 characters';
       } else {
         errors.password = '';
       }
@@ -83,40 +83,6 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // First try mock authentication (for demo/dev)
-      const mockResult = await mockLogin(email, password, rememberMe);
-
-      if (mockResult.success) {
-        // Handle remember me
-        if (rememberMe) {
-          localStorage.setItem('rememberMe', 'true');
-          localStorage.setItem('rememberedEmail', email);
-        } else {
-          localStorage.removeItem('rememberMe');
-          localStorage.removeItem('rememberedEmail');
-        }
-
-        // Check if 2FA is required
-        if (mockResult.requiresTwoFactor) {
-          // Store temp data and redirect to 2FA page
-          sessionStorage.setItem('2fa_temp_token', mockResult.tempToken);
-          sessionStorage.setItem('2fa_user', JSON.stringify(mockResult.user));
-          setSuccess('Credentials verified! Redirecting to verification...');
-          setTimeout(() => {
-            navigate('/verify-2fa');
-          }, 1000);
-          return;
-        }
-
-        // Direct login success
-        setSuccess('Login successful! Redirecting...');
-        setTimeout(() => {
-          navigate(mockResult.redirectTo);
-        }, 1000);
-        return;
-      }
-
-      // If mock auth fails, try real backend
       const result = await login(email, password);
 
       if (result.success) {
@@ -145,8 +111,14 @@ export default function Login() {
         setTimeout(() => {
           navigate(dashboardPath);
         }, 1000);
+      } else if (result.status === 'OTP_REQUIRED') {
+        sessionStorage.setItem('2fa_user', JSON.stringify({ email, role: result.user?.role || 'DOCTOR' }));
+        setSuccess('OTP sent! Redirecting to verification...');
+        setTimeout(() => {
+          navigate('/verify-2fa');
+        }, 800);
       } else {
-        setError(result.error || mockResult.error || 'Login failed. Please check your credentials and try again.');
+        setError(result.error || 'Login failed. Please check your credentials and try again.');
         setLoading(false);
       }
     } catch (err) {

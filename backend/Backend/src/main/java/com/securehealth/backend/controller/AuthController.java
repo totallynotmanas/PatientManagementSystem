@@ -5,6 +5,7 @@ import com.securehealth.backend.dto.LoginRequest;
 import com.securehealth.backend.dto.LoginResponse;
 import com.securehealth.backend.dto.RegistrationRequest;
 import com.securehealth.backend.dto.ResetPasswordRequest;
+import com.securehealth.backend.dto.RegistrationResponse;
 import com.securehealth.backend.model.Login;
 import com.securehealth.backend.service.AuthService;
 import jakarta.servlet.http.Cookie;            
@@ -46,20 +47,20 @@ public class AuthController {
      * @return 201 Created if successful, or 400 Bad Request if validation fails.
      */
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> registerUser(@Valid @RequestBody RegistrationRequest request) {
+    public ResponseEntity<RegistrationResponse> registerUser(@Valid @RequestBody RegistrationRequest request) {
         try {
-            authService.registerUser(
-                    request.getEmail(),
-                    request.getPassword(),
-                    request.getRole());
-            Map<String, String> resp = new HashMap<>();
-            resp.put("message", "User registered successfully");
+            Login created = authService.registerUser(request);
+            RegistrationResponse resp = new RegistrationResponse(
+                "User registered successfully", 
+                created.getUserId(), 
+                created.getRole()
+            );
             return ResponseEntity.status(HttpStatus.CREATED).body(resp);
 
         } catch (RuntimeException e) {
-            // In a real app, use a Global Exception Handler instead of try-catch here
-            Map<String, String> resp = new HashMap<>();
-            resp.put("message", e.getMessage());
+            RegistrationResponse resp = new RegistrationResponse(
+                e.getMessage(), null, null
+            );
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
         }
 
@@ -188,6 +189,19 @@ public class AuthController {
             // For now, returning a generic response
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
+    }
+
+    /**
+     * Resends OTP to the user's email.
+     *
+     * <p><b>Endpoint:</b> POST /api/auth/resend-otp</p>
+     */
+    @PostMapping("/resend-otp")
+    public ResponseEntity<Map<String, String>> resendOtp(@RequestBody Map<String, String> request) {
+        authService.resendOtp(request.get("email"));
+        Map<String, String> resp = new HashMap<>();
+        resp.put("message", "OTP resent");
+        return ResponseEntity.ok(resp);
     }
 
 

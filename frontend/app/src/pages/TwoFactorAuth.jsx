@@ -5,7 +5,8 @@ import {
   Smartphone, Mail, RefreshCw, HelpCircle, ChevronDown, ChevronUp,
   Phone, Lock
 } from 'lucide-react';
-import { mockVerifyOTP, mockVerifyBackupCode, mockResendOTP, RESEND_COOLDOWN_SECONDS, MAX_VERIFICATION_ATTEMPTS } from '../mocks/auth';
+import { verifyOtp, resendOtp } from '../services/supabaseAuth';
+import { RESEND_COOLDOWN_SECONDS, MAX_VERIFICATION_ATTEMPTS } from '../mocks/auth';
 
 export default function TwoFactorAuth() {
   const navigate = useNavigate();
@@ -147,7 +148,7 @@ export default function TwoFactorAuth() {
     setError('');
 
     try {
-      const result = await mockVerifyOTP(code, tempToken);
+      const result = await verifyOtp(user?.email, code);
 
       if (result.success) {
         setSuccess('Verification successful! Redirecting to your dashboard...');
@@ -156,7 +157,15 @@ export default function TwoFactorAuth() {
         sessionStorage.removeItem('2fa_user');
         
         setTimeout(() => {
-          navigate(result.redirectTo);
+          const role = (result.role || user?.role || 'PATIENT').toUpperCase();
+          const roleMap = {
+            'PATIENT': 'patient',
+            'DOCTOR': 'doctor',
+            'NURSE': 'nurse',
+            'ADMIN': 'admin',
+            'LAB_TECH': 'lab'
+          };
+          navigate(`/dashboard/${roleMap[role] || 'patient'}`);
         }, 1500);
       } else {
         const newAttempts = attempts - 1;
@@ -167,7 +176,7 @@ export default function TwoFactorAuth() {
           setLockoutCountdown(15 * 60); // 15 minutes
           setError('Too many failed attempts. Please try again in 15 minutes.');
         } else {
-          setError(`${result.error} ${newAttempts} ${newAttempts === 1 ? 'attempt' : 'attempts'} remaining.`);
+          setError(`${result.error || 'Invalid code'} ${newAttempts} ${newAttempts === 1 ? 'attempt' : 'attempts'} remaining.`);
         }
         
         clearOtp();
@@ -191,7 +200,7 @@ export default function TwoFactorAuth() {
     setError('');
 
     try {
-      const result = await mockVerifyBackupCode(backupCode, tempToken);
+      const result = { success: false, error: 'Backup codes are not enabled' };
 
       if (result.success) {
         setSuccess('Backup code verified! Redirecting to your dashboard...');
@@ -229,7 +238,7 @@ export default function TwoFactorAuth() {
     setCountdown(RESEND_COOLDOWN_SECONDS);
     
     try {
-      await mockResendOTP(tempToken);
+      await resendOtp(user?.email);
       setSuccess('A new verification code has been sent!');
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {

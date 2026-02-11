@@ -37,6 +37,7 @@ public class Login {
     /**
      * To enable 2FA for doctors and admins
      */
+    @Column(name = "two_factor_enabled", nullable = false)
     private boolean twoFactorEnabled;
 
     /**

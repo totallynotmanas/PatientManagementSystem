@@ -1,7 +1,30 @@
 // Authentication service for backend API
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const envApiUrl = process.env.REACT_APP_API_URL;
+const normalizedApiUrl = envApiUrl
+   ? envApiUrl.replace('://localhost:8080/', '://localhost:8081/').replace('://127.0.0.1:8080/', '://127.0.0.1:8081/')
+   : null;
+const API_BASE_URL = normalizedApiUrl || `http://localhost:8081/api`;
 const AUTH_URL = `${API_BASE_URL}/auth`;
 const STORAGE_KEY = 'secure_health_user';
+
+const fetchWithTimeout = async (url, options = {}, timeoutMs = 12000) => {
+   const controller = new AbortController();
+   const id = setTimeout(() => controller.abort(), timeoutMs);
+   try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(id);
+      return response;
+   } catch (err) {
+      clearTimeout(id);
+      if (err?.name === 'AbortError') {
+         throw new Error('Request timed out');
+      }
+      if (typeof err?.message === 'string' && err.message.includes('Failed to fetch')) {
+         throw new Error('Network error. Please check your connection.');
+      }
+      throw err;
+   }
+};
 
 // Auth state change listeners
 let authStateListeners = [];
@@ -26,7 +49,7 @@ export const signup = async (email, password, userData = {}) => {
       const role = userData.role || 'PATIENT';
       const body = { email, password, role, ...userData };
 
-      const response = await fetch(`${AUTH_URL}/register`, {
+      const response = await fetchWithTimeout(`${AUTH_URL}/register`, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify(body),
@@ -63,7 +86,7 @@ export const signUp = async (email, password, userData) => {
 
 export const login = async (email, password) => {
    try {
-      const response = await fetch(`${AUTH_URL}/login`, {
+      const response = await fetchWithTimeout(`${AUTH_URL}/login`, {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({ email, password }),
@@ -75,14 +98,13 @@ export const login = async (email, password) => {
       }
 
       let data = await response.json();
-      // Expecting data to contain { message, email, role } based on backend
-      const user = {
-         email: data.email || email,
-         role: data.role || 'PATIENT'
-      };
-
+      const status = data.status || data.message || 'LOGIN_SUCCESS';
+      const user = { email: data.email || email, role: data.role || 'PATIENT' };
+      if (status === 'OTP_REQUIRED') {
+         return { status, user };
+      }
       saveSession(user);
-      return { user, ...data };
+      return { status, user, ...data };
    } catch (error) {
       throw error;
    }
@@ -91,9 +113,11 @@ export const login = async (email, password) => {
 export const signIn = async (email, password) => {
    try {
       const result = await login(email, password);
-      // Construct session object matching what AuthContext expects
+      if (result.status === 'OTP_REQUIRED') {
+         return { success: false, status: 'OTP_REQUIRED', user: result.user };
+      }
       const session = { user: result.user };
-      return { success: true, user: result.user, session };
+      return { success: true, user: result.user, session, status: result.status };
    } catch (error) {
       return { success: false, error: error.message };
    }
@@ -152,7 +176,7 @@ const notifyAuthStateChange = (session) => {
 // Request password reset email
 export const forgotPassword = async (email) => {
    try {
-      const response = await fetch(`${AUTH_URL}/forgot-password`, {
+      const response = await fetchWithTimeout(`${AUTH_URL}/forgot-password`, {
          method: 'POST',
          headers: {
             'Content-Type': 'application/json',
@@ -176,7 +200,7 @@ export const forgotPassword = async (email) => {
 // Validate password reset token
 export const validateResetToken = async (token) => {
    try {
-      const response = await fetch(`${AUTH_URL}/validate-reset-token?token=${encodeURIComponent(token)}`, {
+      const response = await fetchWithTimeout(`${AUTH_URL}/validate-reset-token?token=${encodeURIComponent(token)}`, {
          method: 'GET',
          headers: {
             'Content-Type': 'application/json',
@@ -199,7 +223,7 @@ export const validateResetToken = async (token) => {
 // Reset password with token
 export const resetPassword = async (token, newPassword, confirmPassword) => {
    try {
-      const response = await fetch(`${AUTH_URL}/reset-password`, {
+      const response = await fetchWithTimeout(`${AUTH_URL}/reset-password`, {
          method: 'POST',
          headers: {
             'Content-Type': 'application/json',
@@ -220,3 +244,42 @@ export const resetPassword = async (token, newPassword, confirmPassword) => {
    }
 };
 
+// Verify OTP for 2FA
+export const verifyOtp = async (email, otp) => {
+   try {
+      const response = await fetchWithTimeout(`${AUTH_URL}/verify-otp`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ email, otp }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+         return { success: true, ...data };
+      } else {
+         return { success: false, error: data.message || 'Invalid or expired OTP' };
+      }
+   } catch (error) {
+      console.error('Verify OTP error:', error);
+      return { success: false, error: 'Network error. Please try again.' };
+   }
+};
+
+// Resend OTP
+export const resendOtp = async (email) => {
+   try {
+      const response = await fetchWithTimeout(`${AUTH_URL}/resend-otp`, {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({ email }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+         return { success: true, message: data.message || 'OTP resent' };
+      } else {
+         return { success: false, error: data.message || 'Failed to resend OTP' };
+      }
+   } catch (error) {
+      console.error('Resend OTP error:', error);
+      return { success: false, error: 'Network error. Please try again.' };
+   }
+};
