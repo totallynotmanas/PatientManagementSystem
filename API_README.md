@@ -66,3 +66,17 @@ const logoutUser = async () => {
   console.log("Logged out successfully");
   // TODO: Clear accessToken from React State
 };
+
+## for enabling 2fa
+const enableTwoFactorAuth = async (email) => {
+  const response = await fetch("http://localhost:8081/api/auth/enable-2fa", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to enable 2FA");
+  }
+  return await response.json();
+};

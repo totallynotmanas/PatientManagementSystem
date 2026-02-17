@@ -1,5 +1,5 @@
 // API Service - Centralized API calls for the Patient Management System
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081/api';
 
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
@@ -370,7 +370,7 @@ export const vitalSignsAPI = {
    },
 };
 
-export default {
+const api = {
    auth: authAPI,
    patients: patientAPI,
    appointments: appointmentAPI,
@@ -380,3 +380,5 @@ export default {
    doctors: doctorAPI,
    vitalSigns: vitalSignsAPI,
 };
+
+export default api;

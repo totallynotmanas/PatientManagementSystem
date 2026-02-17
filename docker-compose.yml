@@ -21,7 +21,7 @@ services:
     container_name: secure_health_adminer
     restart: always
     ports:
-      - "8080:8080"
+      - "8082:8080"
     networks:
       - health_net
 
@@ -45,9 +45,11 @@ services:
     restart: always
     ports:
       - "8081:8080" # Maps localhost:8081 -> Container:8080
+    env_file:
+      - .env
     environment:
       # Connect to Postgres container
-      SPRING_DATASOURCE_URL: jdbc:postgresql://secure_health_db:5432/healthcare_auth_db?stringtype=unspecified
+      SPRING_DATASOURCE_URL: jdbc:postgresql://secure_health_db:5432/${DB_NAME}?stringtype=unspecified
       SPRING_DATASOURCE_USERNAME: ${DB_USER}
       SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
       # Connect to Redis container

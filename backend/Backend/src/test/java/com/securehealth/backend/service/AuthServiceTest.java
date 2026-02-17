@@ -96,6 +96,51 @@ class AuthServiceTest {
         verify(loginRepository, never()).save(any(Login.class));
     }
 
+    @Test
+    void testRegisterUser_Doctor_AutoEnables2FA() {
+        String email = "doctor@example.com";
+        String password = "Password123!";
+        Role role = Role.DOCTOR;
+
+        when(loginRepository.existsByEmail(email)).thenReturn(false);
+        when(passwordEncoder.encode(password)).thenReturn("encodedPass");
+        when(loginRepository.save(any(Login.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        Login result = authService.registerUser(email, password, role);
+
+        assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by default");
+    }
+
+    @Test
+    void testRegisterUser_Admin_AutoEnables2FA() {
+        String email = "admin@example.com";
+        String password = "Password123!";
+        Role role = Role.ADMIN;
+
+        when(loginRepository.existsByEmail(email)).thenReturn(false);
+        when(passwordEncoder.encode(password)).thenReturn("encodedPass");
+        when(loginRepository.save(any(Login.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        Login result = authService.registerUser(email, password, role);
+
+        assertTrue(result.isTwoFactorEnabled(), "Admin should have 2FA enabled by default");
+    }
+
+    @Test
+    void testRegisterUser_Patient_DefaultNo2FA() {
+        String email = "patient@example.com";
+        String password = "Password123!";
+        Role role = Role.PATIENT;
+
+        when(loginRepository.existsByEmail(email)).thenReturn(false);
+        when(passwordEncoder.encode(password)).thenReturn("encodedPass");
+        when(loginRepository.save(any(Login.class))).thenAnswer(i -> i.getArguments()[0]);
+
+        Login result = authService.registerUser(email, password, role);
+
+        assertFalse(result.isTwoFactorEnabled(), "Patient should NOT have 2FA enabled by default");
+    }
+
     // ==================== login() Tests (MERGED) ====================
 
     @Test
@@ -191,12 +236,28 @@ class AuthServiceTest {
         verify(emailService, times(1)).sendOtp(anyString(), anyString()); // Verifies email was sent
     }
 
+    @Test
+    void testEnableTwoFactorAuth_Success() {
+        String email = "user@example.com";
+        Login user = new Login();
+        user.setEmail(email);
+        user.setTwoFactorEnabled(false);
+
+        when(loginRepository.findByEmail(email)).thenReturn(Optional.of(user));
+
+        authService.enableTwoFactorAuth(email);
+
+        assertTrue(user.isTwoFactorEnabled());
+        verify(loginRepository).save(user);
+    }
+
     // ==================== logout() Tests ====================
 
     @Test
     void testLogout_Success() {
         String refreshToken = "some-refresh-token";
         Session mockSession = new Session();
+        mockSession.setUser(testUser);
         
         // Mock finding the session by hash
         when(sessionRepository.findByRefreshTokenHash(anyString())).thenReturn(Optional.of(mockSession));

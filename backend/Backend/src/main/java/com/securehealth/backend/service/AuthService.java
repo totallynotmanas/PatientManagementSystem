@@ -98,6 +98,10 @@ public class AuthService {
         newUser.setEmail(email);
         newUser.setPasswordHash(hash);
         newUser.setRole(role);
+
+        if (role == Role.DOCTOR || role == Role.ADMIN) {
+            newUser.setTwoFactorEnabled(true);
+        }
         
         Login savedUser = loginRepository.save(newUser);
         logEvent(email, "USER_REGISTERED", "UNKNOWN", "UNKNOWN", "User registered with role: " + role);
@@ -141,7 +145,7 @@ public class AuthService {
 
             logEvent(email, "OTP_REQUIRED", ipAddress, userAgent, "OTP sent to email");
             // Return "OTP_REQUIRED" status with NULL tokens
-            return new LoginResponse(null, null, null, "OTP_REQUIRED");
+            return new LoginResponse(null, null, user.getRole().name(), "OTP_REQUIRED");
         }
 
         // --- 2. GENERATE TOKENS (Standard Login) ---
@@ -220,6 +224,20 @@ public class AuthService {
                 sessionRepository.save(session);
                 logEvent(session.getUser().getEmail(), "LOGOUT", session.getIpAddress(), session.getUserAgent(), "User initiated logout");
             });
+    }
+
+    /**
+     * Enables Two-Factor Authentication for a user (e.g. Patient).
+     */
+    @Transactional
+    public void enableTwoFactorAuth(String email) {
+        Login user = loginRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setTwoFactorEnabled(true);
+        loginRepository.save(user);
+        
+        logEvent(email, "2FA_ENABLED", "UNKNOWN", "UNKNOWN", "User manually enabled 2FA");
     }
 
     private String hashToken(String token) {

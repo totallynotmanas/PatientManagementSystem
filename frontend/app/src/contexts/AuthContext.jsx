@@ -43,10 +43,13 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       const result = await authService.signIn(email, password);
+      if (result.status === 'OTP_REQUIRED') {
+        return { success: false, status: 'OTP_REQUIRED' };
+      }
       if (result.success) {
         setUser(result.user);
         setSession(result.session);
-        return { success: true };
+        return { success: true, status: result.status };
       } else {
         setError(result.error);
         return { success: false, error: result.error };

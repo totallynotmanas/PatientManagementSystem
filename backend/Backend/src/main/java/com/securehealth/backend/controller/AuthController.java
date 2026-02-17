@@ -213,6 +213,32 @@ public class AuthController {
         return ResponseEntity.ok("Logged out successfully");
     }
 
+    /**
+     * Enables Two-Factor Authentication for a user (e.g. Patient).
+     * <p>
+     * Endpoint: POST /api/auth/enable-2fa
+     * </p>
+     */
+    @PostMapping("/enable-2fa")
+    public ResponseEntity<Map<String, String>> enableTwoFactorAuth(@RequestBody Map<String, String> request) {
+        try {
+            String email = request.get("email");
+            if (email == null || email.trim().isEmpty()) {
+                throw new RuntimeException("Email is required");
+            }
+
+            authService.enableTwoFactorAuth(email);
+            
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", "Two-Factor Authentication enabled successfully");
+            return ResponseEntity.ok(resp);
+        } catch (RuntimeException e) {
+            Map<String, String> resp = new HashMap<>();
+            resp.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
+        }
+    }
+
     // ==================== PASSWORD RECOVERY ENDPOINTS ====================
 
     /**
