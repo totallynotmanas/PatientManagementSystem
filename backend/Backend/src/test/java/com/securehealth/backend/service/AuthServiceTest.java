@@ -107,9 +107,9 @@ class AuthServiceTest {
         when(loginRepository.save(any(Login.class))).thenAnswer(i -> i.getArguments()[0]);
 
         Login result = authService.registerUser(email, password, role);
-
-        assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by default");
+assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by default");
     }
+        
 
     @Test
     void testRegisterUser_Admin_AutoEnables2FA() {

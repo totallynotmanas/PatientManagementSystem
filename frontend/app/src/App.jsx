@@ -52,17 +52,24 @@ function App() {
     DOCTOR: 'doctor',
     NURSE: 'nurse',
     ADMIN: 'admin',
-    LAB_TECH: 'lab',
+    LAB_TECHNICIAN: 'lab',
   };
 
   const RoleGuard = ({ expectedRole, children }) => {
-    const userRole = (user?.role || '').toLowerCase();
+    // Normalize logic: Get uppercase role from user -> Lookup in map -> Get route-friendly role
+    // e.g. "LAB_TECHNICIAN" -> "lab"
+    // e.g. "DOCTOR" -> "doctor"
+    const userRoleKey = (user?.role || '').toUpperCase();
+    const normalizedUserRole = roleMap[userRoleKey] || 'patient';
+
     if (!user) {
       return <Navigate to="/login" replace />;
     }
-    if (userRole !== expectedRole) {
-      const routeRole = roleMap[(user?.role || 'PATIENT').toUpperCase()] || 'patient';
-      return <Navigate to={`/dashboard/${routeRole}`} replace />;
+
+    // Compare normalized role with expected route role
+    if (normalizedUserRole !== expectedRole) {
+      // Redirect to the correct dashboard for their role
+      return <Navigate to={`/dashboard/${normalizedUserRole}`} replace />;
     }
     return children;
   };

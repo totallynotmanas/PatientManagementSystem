@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, Shield, AlertCircle, CheckCircle, X, 
+import {
+  ArrowLeft, Shield, AlertCircle, CheckCircle, X,
   Smartphone, Mail, RefreshCw, HelpCircle, ChevronDown, ChevronUp,
   Phone, Lock
 } from 'lucide-react';
@@ -10,7 +10,7 @@ import { RESEND_COOLDOWN_SECONDS, MAX_VERIFICATION_ATTEMPTS } from '../mocks/aut
 
 export default function TwoFactorAuth() {
   const navigate = useNavigate();
-  
+
   // Get stored 2FA session data
   const [tempToken] = useState(() => sessionStorage.getItem('2fa_temp_token'));
   const [user] = useState(() => {
@@ -28,12 +28,12 @@ export default function TwoFactorAuth() {
   const [attempts, setAttempts] = useState(MAX_VERIFICATION_ATTEMPTS);
   const [isLocked, setIsLocked] = useState(false);
   const [lockoutCountdown, setLockoutCountdown] = useState(0);
-  
+
   // Feedback state
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showHelp, setShowHelp] = useState(false);
-  
+
   // Refs for OTP inputs
   const inputRefs = useRef([]);
 
@@ -78,13 +78,13 @@ export default function TwoFactorAuth() {
     if (code.length === 6 && !verifying && !showBackupCode) {
       handleVerifyOTP();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [otp]);
 
   const handleOtpChange = (index, value) => {
     // Only allow digits
     if (value && !/^\d$/.test(value)) return;
-    
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
@@ -101,12 +101,12 @@ export default function TwoFactorAuth() {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
-    
+
     // Handle left arrow
     if (e.key === 'ArrowLeft' && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
-    
+
     // Handle right arrow
     if (e.key === 'ArrowRight' && index < 5) {
       inputRefs.current[index + 1]?.focus();
@@ -116,14 +116,14 @@ export default function TwoFactorAuth() {
   const handleOtpPaste = (e) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    
+
     if (pastedData.length > 0) {
       const newOtp = [...otp];
       for (let i = 0; i < pastedData.length && i < 6; i++) {
         newOtp[i] = pastedData[i];
       }
       setOtp(newOtp);
-      
+
       // Focus the next empty input or last input
       const nextEmptyIndex = pastedData.length < 6 ? pastedData.length : 5;
       inputRefs.current[nextEmptyIndex]?.focus();
@@ -137,7 +137,7 @@ export default function TwoFactorAuth() {
 
   const handleVerifyOTP = async () => {
     if (isLocked) return;
-    
+
     const code = otp.join('');
     if (code.length !== 6) {
       setError('Please enter all 6 digits');
@@ -155,7 +155,7 @@ export default function TwoFactorAuth() {
         // Clear 2FA session data
         sessionStorage.removeItem('2fa_temp_token');
         sessionStorage.removeItem('2fa_user');
-        
+
         setTimeout(() => {
           const role = (result.role || user?.role || 'PATIENT').toUpperCase();
           const roleMap = {
@@ -163,14 +163,14 @@ export default function TwoFactorAuth() {
             'DOCTOR': 'doctor',
             'NURSE': 'nurse',
             'ADMIN': 'admin',
-            'LAB_TECH': 'lab'
+            'LAB_TECHNICIAN': 'lab'
           };
           navigate(`/dashboard/${roleMap[role] || 'patient'}`);
         }, 1500);
       } else {
         const newAttempts = attempts - 1;
         setAttempts(newAttempts);
-        
+
         if (newAttempts <= 0) {
           setIsLocked(true);
           setLockoutCountdown(15 * 60); // 15 minutes
@@ -178,7 +178,7 @@ export default function TwoFactorAuth() {
         } else {
           setError(`${result.error || 'Invalid code'} ${newAttempts} ${newAttempts === 1 ? 'attempt' : 'attempts'} remaining.`);
         }
-        
+
         clearOtp();
         setVerifying(false);
       }
@@ -190,7 +190,7 @@ export default function TwoFactorAuth() {
 
   const handleVerifyBackupCode = async () => {
     if (isLocked) return;
-    
+
     if (!backupCode.trim()) {
       setError('Please enter a backup code');
       return;
@@ -206,14 +206,14 @@ export default function TwoFactorAuth() {
         setSuccess('Backup code verified! Redirecting to your dashboard...');
         sessionStorage.removeItem('2fa_temp_token');
         sessionStorage.removeItem('2fa_user');
-        
+
         setTimeout(() => {
           navigate(result.redirectTo);
         }, 1500);
       } else {
         const newAttempts = attempts - 1;
         setAttempts(newAttempts);
-        
+
         if (newAttempts <= 0) {
           setIsLocked(true);
           setLockoutCountdown(15 * 60);
@@ -221,7 +221,7 @@ export default function TwoFactorAuth() {
         } else {
           setError(`${result.error} ${newAttempts} ${newAttempts === 1 ? 'attempt' : 'attempts'} remaining.`);
         }
-        
+
         setBackupCode('');
         setVerifying(false);
       }
@@ -236,7 +236,7 @@ export default function TwoFactorAuth() {
 
     setCanResend(false);
     setCountdown(RESEND_COOLDOWN_SECONDS);
-    
+
     try {
       await resendOtp(user?.email);
       setSuccess('A new verification code has been sent!');
@@ -293,7 +293,7 @@ export default function TwoFactorAuth() {
               </div>
               <h1 className="text-lg font-bold text-gray-900 dark:text-slate-100 mb-1">Two-Factor Authentication</h1>
               <p className="text-gray-600 dark:text-slate-400 text-xs">Enter the verification code sent to your device</p>
-              
+
               {/* User Info */}
               <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/30 rounded-full">
                 <Mail className="h-3 w-3 text-blue-600 dark:text-blue-400" />
@@ -310,7 +310,7 @@ export default function TwoFactorAuth() {
                   <AlertCircle className="h-4 w-4 text-red-500 dark:text-red-400 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
-                <button 
+                <button
                   onClick={dismissError}
                   className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 transition-colors"
                   aria-label="Dismiss error"
@@ -343,7 +343,7 @@ export default function TwoFactorAuth() {
                   <label className="block text-xs font-semibold text-gray-700 dark:text-slate-200 mb-3 text-center">
                     Enter 6-digit verification code
                   </label>
-                  
+
                   {/* OTP Input Boxes */}
                   <div className="flex justify-center gap-1.5 sm:gap-2">
                     {otp.map((digit, index) => (
@@ -358,15 +358,14 @@ export default function TwoFactorAuth() {
                         onKeyDown={(e) => handleOtpKeyDown(index, e)}
                         onPaste={index === 0 ? handleOtpPaste : undefined}
                         disabled={isLocked || verifying}
-                        className={`w-10 h-12 sm:w-11 sm:h-13 text-center text-xl font-bold rounded-lg border-2 focus:outline-none focus:ring-2 transition-all ${
-                          isLocked || verifying
+                        className={`w-10 h-12 sm:w-11 sm:h-13 text-center text-xl font-bold rounded-lg border-2 focus:outline-none focus:ring-2 transition-all ${isLocked || verifying
                             ? 'bg-gray-100 dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500 cursor-not-allowed'
                             : error
-                            ? 'border-red-300 dark:border-red-500 focus:ring-red-500 focus:border-red-500 animate-shake bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
-                            : digit
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 focus:ring-blue-500 text-gray-900 dark:text-slate-100'
-                            : 'border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
-                        }`}
+                              ? 'border-red-300 dark:border-red-500 focus:ring-red-500 focus:border-red-500 animate-shake bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
+                              : digit
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 focus:ring-blue-500 text-gray-900 dark:text-slate-100'
+                                : 'border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
+                          }`}
                         aria-label={`Digit ${index + 1}`}
                       />
                     ))}
@@ -445,13 +444,12 @@ export default function TwoFactorAuth() {
                     }}
                     disabled={isLocked || verifying}
                     placeholder="XXXX-XXXX-XXXX-XXXX"
-                    className={`w-full border-2 rounded-lg px-3 py-2 text-center font-mono text-base tracking-wider focus:outline-none focus:ring-2 transition-all ${
-                      isLocked || verifying
+                    className={`w-full border-2 rounded-lg px-3 py-2 text-center font-mono text-base tracking-wider focus:outline-none focus:ring-2 transition-all ${isLocked || verifying
                         ? 'bg-gray-100 dark:bg-slate-700 border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500 cursor-not-allowed'
                         : error
-                        ? 'border-red-300 dark:border-red-500 focus:ring-red-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
-                        : 'border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
-                    }`}
+                          ? 'border-red-300 dark:border-red-500 focus:ring-red-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
+                          : 'border-gray-300 dark:border-slate-600 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100'
+                      }`}
                   />
                 </div>
 
@@ -517,7 +515,7 @@ export default function TwoFactorAuth() {
                   <ChevronDown className="h-4 w-4 text-gray-400 dark:text-slate-500" />
                 )}
               </button>
-              
+
               {showHelp && (
                 <div className="mt-2 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg space-y-2 text-xs text-gray-600 dark:text-slate-400 animate-fade-in">
                   <p>• Make sure you're checking the correct device</p>

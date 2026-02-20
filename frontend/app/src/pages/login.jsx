@@ -102,7 +102,7 @@ export default function Login() {
           'DOCTOR': 'doctor',
           'NURSE': 'nurse',
           'ADMIN': 'admin',
-          'LAB_TECH': 'lab'
+          'LAB_TECHNICIAN': 'lab'
         };
 
         const dashboardPath = `/dashboard/${roleMap[userRole] || 'patient'}`;

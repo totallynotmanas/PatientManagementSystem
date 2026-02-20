@@ -187,7 +187,7 @@ export default function CreateAccount() {
                       >
                         <option value="DOCTOR">Doctor</option>
                         <option value="NURSE">Nurse</option>
-                        <option value="LAB_TECH">Lab Technician</option>
+                        <option value="LAB_TECHNICIAN">Lab Technician</option>
                         <option value="ADMIN">Administrator</option>
                       </select>
                     </div>
@@ -303,7 +303,7 @@ export default function CreateAccount() {
                     )}
 
                     {/* Other Role Fields (Optional placeholders) */}
-                    {(role === 'NURSE' || role === 'EXT_TECH') && (
+                    {(role === 'NURSE' || role === 'LAB_TECHNICIAN') && (
                       <div className="space-y-1 animate-fade-in">
                         <label className="text-xs font-semibold text-gray-700 dark:text-slate-200">Department / Unit</label>
                         <div className="relative">
