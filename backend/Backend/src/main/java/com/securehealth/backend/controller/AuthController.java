@@ -7,8 +7,8 @@ import com.securehealth.backend.dto.RegistrationRequest;
 import com.securehealth.backend.dto.ResetPasswordRequest;
 import com.securehealth.backend.model.Login;
 import com.securehealth.backend.service.AuthService;
-import jakarta.servlet.http.Cookie;            
-import jakarta.servlet.http.HttpServletRequest;  
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,45 +68,51 @@ public class AuthController {
     /**
      * Authenticates an existing user during login.
      *
-     * <p><b>Endpoint:</b> POST /api/auth/login</p>
+     * <p>
+     * <b>Endpoint:</b> POST /api/auth/login
+     * </p>
      *
-     * <p>This endpoint performs the first step of authentication:
+     * <p>
+     * This endpoint performs the first step of authentication:
      * <ul>
-     *   <li>Validates user credentials (email and password)</li>
-     *   <li>Checks account lock status</li>
-     *   <li>Triggers role-based Two-Factor Authentication (2FA) if required</li>
+     * <li>Validates user credentials (email and password)</li>
+     * <li>Checks account lock status</li>
+     * <li>Triggers role-based Two-Factor Authentication (2FA) if required</li>
      * </ul>
      * </p>
      *
-     * <p><b>Responses:</b></p>
+     * <p>
+     * <b>Responses:</b>
+     * </p>
      * <ul>
-     *   <li><b>LOGIN_SUCCESS</b> — User authenticated successfully</li>
-     *   <li><b>OTP_REQUIRED</b> — OTP has been sent to the user's email for 2FA verification</li>
+     * <li><b>LOGIN_SUCCESS</b> — User authenticated successfully</li>
+     * <li><b>OTP_REQUIRED</b> — OTP has been sent to the user's email for 2FA
+     * verification</li>
      * </ul>
      *
      * @param request Contains email and password from the client
-     * @return HTTP 200 with authentication status, or HTTP 401 if credentials are invalid
-     * Authenticates user and sets Secure HttpOnly Cookie.
-     * Endpoint: POST /api/auth/login
+     * @return HTTP 200 with authentication status, or HTTP 401 if credentials are
+     *         invalid
+     *         Authenticates user and sets Secure HttpOnly Cookie.
+     *         Endpoint: POST /api/auth/login
      */
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request,
-                                   HttpServletResponse response,
-                                   HttpServletRequest httpRequest) {
+            HttpServletResponse response,
+            HttpServletRequest httpRequest) {
         try {
 
             // 1. Call Service
             LoginResponse loginData = authService.login(
-                request.getEmail(), 
-                request.getPassword(),
-                httpRequest.getRemoteAddr(),
-                httpRequest.getHeader("User-Agent")
-            );
+                    request.getEmail(),
+                    request.getPassword(),
+                    httpRequest.getRemoteAddr(),
+                    httpRequest.getHeader("User-Agent"));
 
             // [NEW] Check for OTP Requirement
             if ("OTP_REQUIRED".equals(loginData.getStatus())) {
                 // Return immediately. DO NOT set cookies.
-                return ResponseEntity.ok(loginData); 
+                return ResponseEntity.ok(loginData);
             }
 
             // 2. If we get here, Login is fully successful. Set the Cookie.
@@ -119,7 +125,7 @@ public class AuthController {
             response.addCookie(refreshCookie);
 
             // 3. Hide Refresh Token from JSON
-            loginData.setRefreshToken(null); 
+            loginData.setRefreshToken(null);
 
             return ResponseEntity.ok(loginData);
 
@@ -130,28 +136,36 @@ public class AuthController {
         }
     }
 
-
     /**
-     * Verifies the One-Time Password (OTP) as part of Two-Factor Authentication (2FA).
+     * Verifies the One-Time Password (OTP) as part of Two-Factor Authentication
+     * (2FA).
      *
-     * <p><b>Endpoint:</b> POST /api/auth/verify-otp</p>
+     * <p>
+     * <b>Endpoint:</b> POST /api/auth/verify-otp
+     * </p>
      *
-     * <p>This endpoint completes the second step of authentication for
+     * <p>
+     * This endpoint completes the second step of authentication for
      * high-privilege users (e.g., DOCTOR, ADMIN) after the initial password
      * verification has succeeded. It validates the OTP sent to the user's
-     * registered email address.</p>
+     * registered email address.
+     * </p>
      *
-     * <p><b>Behavior:</b></p>
+     * <p>
+     * <b>Behavior:</b>
+     * </p>
      * <ul>
-     *   <li>Checks if the OTP matches the stored value</li>
-     *   <li>Ensures the OTP has not expired (time-bound validity)</li>
-     *   <li>Clears the OTP after successful verification to prevent reuse</li>
+     * <li>Checks if the OTP matches the stored value</li>
+     * <li>Ensures the OTP has not expired (time-bound validity)</li>
+     * <li>Clears the OTP after successful verification to prevent reuse</li>
      * </ul>
      *
-     * <p><b>Responses:</b></p>
+     * <p>
+     * <b>Responses:</b>
+     * </p>
      * <ul>
-     *   <li><b>LOGIN_SUCCESS</b> — OTP is valid and login is completed</li>
-     *   <li><b>UNAUTHORIZED</b> — OTP is invalid or expired</li>
+     * <li><b>LOGIN_SUCCESS</b> — OTP is valid and login is completed</li>
+     * <li><b>UNAUTHORIZED</b> — OTP is invalid or expired</li>
      * </ul>
      *
      * @param request JSON body containing the user's email and OTP
@@ -159,15 +173,14 @@ public class AuthController {
      */
     @PostMapping("/verify-otp")
     public ResponseEntity<LoginResponse> verifyOtp(@RequestBody Map<String, String> request,
-                                                     HttpServletResponse response,
-                                                     HttpServletRequest httpRequest) {
+            HttpServletResponse response,
+            HttpServletRequest httpRequest) {
         try {
             LoginResponse loginData = authService.verifyOtp(
-                request.get("email"), 
-                request.get("otp"),
-                httpRequest.getRemoteAddr(),
-                httpRequest.getHeader("User-Agent")
-            );
+                    request.get("email"),
+                    request.get("otp"),
+                    httpRequest.getRemoteAddr(),
+                    httpRequest.getHeader("User-Agent"));
 
             // Login is successful. Set the Cookie.
             Cookie refreshCookie = new Cookie("refreshToken", loginData.getRefreshToken());
@@ -179,7 +192,7 @@ public class AuthController {
             response.addCookie(refreshCookie);
 
             // Hide Refresh Token from JSON
-            loginData.setRefreshToken(null); 
+            loginData.setRefreshToken(null);
 
             return ResponseEntity.ok(loginData);
 
@@ -190,26 +203,32 @@ public class AuthController {
         }
     }
 
-
-
-    
-    // --- LOGOUT (NEW - TASK #12515) ---
+    /**
+     * Logout the user.
+     * <p>
+     * 1. Blacklists the Access Token in Redis.
+     * 2. Revokes the Refresh Token in the Database.
+     * 3. Commands the browser to delete the secure cookie.
+     * </p>
+     */
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@CookieValue(name = "refreshToken", required = false) String refreshToken,
-                                    HttpServletResponse response) {
-        
-        // 1. Invalidate in DB
-        if(refreshToken != null) authService.logout(refreshToken);
+    public ResponseEntity<String> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @CookieValue(name = "refreshToken", required = false) String refreshToken,
+            HttpServletResponse response) {
 
-        // 2. Kill the Cookie
+        // 1. Perform the backend logout (Blacklist & DB Revoke)
+        authService.logout(authHeader, refreshToken);
+
+        // 2. Destroy the cookie in the user's browser
         Cookie cookie = new Cookie("refreshToken", null);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(false); // Make sure this is true in production (HTTPS)
         cookie.setPath("/api/auth");
-        cookie.setMaxAge(0); // Expires immediately
-        
+        cookie.setMaxAge(0); // MaxAge 0 tells the browser to delete it instantly
         response.addCookie(cookie);
-        
+
+        // 3. Send success response
         return ResponseEntity.ok("Logged out successfully");
     }
 
@@ -228,7 +247,7 @@ public class AuthController {
             }
 
             authService.enableTwoFactorAuth(email);
-            
+
             Map<String, String> resp = new HashMap<>();
             resp.put("message", "Two-Factor Authentication enabled successfully");
             return ResponseEntity.ok(resp);
@@ -244,14 +263,20 @@ public class AuthController {
     /**
      * Initiates the password reset process.
      *
-     * <p><b>Endpoint:</b> POST /api/auth/forgot-password</p>
+     * <p>
+     * <b>Endpoint:</b> POST /api/auth/forgot-password
+     * </p>
      *
-     * <p>This endpoint accepts a user's email address and, if the account exists,
+     * <p>
+     * This endpoint accepts a user's email address and, if the account exists,
      * sends a password reset link to that email. For security reasons, the same
-     * response is returned whether or not the email exists in the system.</p>
+     * response is returned whether or not the email exists in the system.
+     * </p>
      *
-     * <p><b>Security Note:</b> This endpoint does not reveal whether an email
-     * is registered to prevent email enumeration attacks.</p>
+     * <p>
+     * <b>Security Note:</b> This endpoint does not reveal whether an email
+     * is registered to prevent email enumeration attacks.
+     * </p>
      *
      * @param request The validated DTO containing the user's email.
      * @return HTTP 200 with a generic success message.
@@ -261,12 +286,12 @@ public class AuthController {
             @Valid @RequestBody ForgotPasswordRequest request) {
         try {
             authService.initiatePasswordReset(request.getEmail());
-            
+
             // Always return success to prevent email enumeration
             Map<String, String> resp = new HashMap<>();
             resp.put("message", "If an account exists with this email, a password reset link has been sent.");
             return ResponseEntity.ok(resp);
-            
+
         } catch (Exception e) {
             // Log the error but don't expose details
             Map<String, String> resp = new HashMap<>();
@@ -278,11 +303,15 @@ public class AuthController {
     /**
      * Validates a password reset token.
      *
-     * <p><b>Endpoint:</b> GET /api/auth/validate-reset-token</p>
+     * <p>
+     * <b>Endpoint:</b> GET /api/auth/validate-reset-token
+     * </p>
      *
-     * <p>This endpoint checks if a reset token is valid before showing
+     * <p>
+     * This endpoint checks if a reset token is valid before showing
      * the password reset form. This prevents users from filling out
-     * the form only to find out the token is expired.</p>
+     * the form only to find out the token is expired.
+     * </p>
      *
      * @param token The reset token from the URL query parameter.
      * @return HTTP 200 if valid, HTTP 400 if invalid or expired.
@@ -290,9 +319,9 @@ public class AuthController {
     @GetMapping("/validate-reset-token")
     public ResponseEntity<Map<String, Object>> validateResetToken(
             @RequestParam("token") String token) {
-        
+
         boolean isValid = authService.validateResetToken(token);
-        
+
         Map<String, Object> resp = new HashMap<>();
         if (isValid) {
             resp.put("valid", true);
@@ -308,20 +337,27 @@ public class AuthController {
     /**
      * Resets the user's password using a valid reset token.
      *
-     * <p><b>Endpoint:</b> POST /api/auth/reset-password</p>
+     * <p>
+     * <b>Endpoint:</b> POST /api/auth/reset-password
+     * </p>
      *
-     * <p>This endpoint validates the reset token, checks for password reuse,
+     * <p>
+     * This endpoint validates the reset token, checks for password reuse,
      * and updates the user's password. It also invalidates all active sessions
-     * for security purposes.</p>
+     * for security purposes.
+     * </p>
      *
-     * <p><b>Password Requirements:</b></p>
+     * <p>
+     * <b>Password Requirements:</b>
+     * </p>
      * <ul>
-     *   <li>Minimum 12 characters (NIST 800-63B compliant)</li>
-     *   <li>Cannot be one of the last 5 passwords used</li>
-     *   <li>Cannot contain common weak patterns</li>
+     * <li>Minimum 12 characters (NIST 800-63B compliant)</li>
+     * <li>Cannot be one of the last 5 passwords used</li>
+     * <li>Cannot contain common weak patterns</li>
      * </ul>
      *
-     * @param request The validated DTO containing token, new password, and confirmation.
+     * @param request The validated DTO containing token, new password, and
+     *                confirmation.
      * @return HTTP 200 if successful, HTTP 400 if validation fails.
      */
     @PostMapping("/reset-password")
@@ -336,15 +372,58 @@ public class AuthController {
             }
 
             authService.resetPassword(request.getToken(), request.getNewPassword());
-            
+
             Map<String, String> resp = new HashMap<>();
             resp.put("message", "Password has been reset successfully. Please login with your new password.");
             return ResponseEntity.ok(resp);
-            
+
         } catch (RuntimeException e) {
             Map<String, String> resp = new HashMap<>();
             resp.put("message", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resp);
+        }
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(
+            @CookieValue(name = "refreshToken", required = false) String oldRefreshToken,
+            HttpServletResponse response,
+            HttpServletRequest request) {
+
+        // 1. Basic Check
+        if (oldRefreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("No refresh token provided");
+        }
+
+        try {
+            // 2. Call Service (Perform Rotation)
+            LoginResponse loginData = authService.refreshToken(
+                    oldRefreshToken,
+                    request.getRemoteAddr(),
+                    request.getHeader("User-Agent"));
+
+            // 3. Set the NEW Cookie (HttpOnly)
+            Cookie newCookie = new Cookie("refreshToken", loginData.getRefreshToken());
+            newCookie.setHttpOnly(true);
+            newCookie.setSecure(false); // Set to TRUE in Production (HTTPS)
+            newCookie.setPath("/api/auth");
+            newCookie.setMaxAge(7 * 24 * 60 * 60); // 7 Days
+
+            response.addCookie(newCookie);
+
+            // 4. Return Access Token (Hide Refresh Token from JSON)
+            loginData.setRefreshToken(null);
+
+            return ResponseEntity.ok(loginData);
+
+        } catch (RuntimeException e) {
+            // If theft detected or expired, clear the cookie immediately
+            Cookie cookie = new Cookie("refreshToken", null);
+            cookie.setPath("/api/auth");
+            cookie.setMaxAge(0);
+            response.addCookie(cookie);
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
     }
 }

@@ -6,6 +6,7 @@ import com.securehealth.backend.model.PasswordHistory;
 import com.securehealth.backend.model.PasswordResetToken;
 import com.securehealth.backend.model.Role;
 import com.securehealth.backend.model.Session;
+import com.securehealth.backend.repository.AuditLogRepository;
 import com.securehealth.backend.repository.LoginRepository;
 import com.securehealth.backend.repository.PasswordHistoryRepository;
 import com.securehealth.backend.repository.PasswordResetTokenRepository;
@@ -45,6 +46,15 @@ class AuthServiceTest {
 
     @Mock
     private PasswordHistoryRepository passwordHistoryRepository;
+
+    @Mock
+    private AuditLogRepository auditLogRepository;
+
+    @Mock
+    private RateLimiterService rateLimiterService;
+
+    @Mock
+    private TokenBlacklistService tokenBlacklistService;
 
     @Mock
     private JwtUtil jwtUtil;
@@ -107,9 +117,9 @@ class AuthServiceTest {
         when(loginRepository.save(any(Login.class))).thenAnswer(i -> i.getArguments()[0]);
 
         Login result = authService.registerUser(email, password, role);
-assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by default");
+
+        assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by default");
     }
-        
 
     @Test
     void testRegisterUser_Admin_AutoEnables2FA() {
@@ -183,7 +193,7 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
                 () -> authService.login(email, "SomePassword123!", "ip", "agent"));
-        
+
         assertEquals("Invalid credentials", exception.getMessage());
     }
 
@@ -220,7 +230,7 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         testUser.setRole(Role.DOCTOR);
         testUser.setTwoFactorEnabled(true);
         String password = "Password123!";
-        
+
         when(loginRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches(password, testUser.getPasswordHash())).thenReturn(true);
 
@@ -231,7 +241,7 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         // Assert
         assertEquals("OTP_REQUIRED", result.getStatus()); // Check status instead of return string
         assertNull(result.getAccessToken()); // Ensure no tokens were generated
-        
+
         verify(loginRepository, times(1)).save(any(Login.class)); // Verifies OTP was saved to DB
         verify(emailService, times(1)).sendOtp(anyString(), anyString()); // Verifies email was sent
     }
@@ -258,11 +268,11 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         String refreshToken = "some-refresh-token";
         Session mockSession = new Session();
         mockSession.setUser(testUser);
-        
+
         // Mock finding the session by hash
         when(sessionRepository.findByRefreshTokenHash(anyString())).thenReturn(Optional.of(mockSession));
 
-        authService.logout(refreshToken);
+        authService.logout(null, refreshToken);
 
         // Verify the session was updated (revoked)
         verify(sessionRepository).save(mockSession);
@@ -307,9 +317,9 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         PasswordResetToken mockToken = new PasswordResetToken();
         mockToken.setUsed(false);
         mockToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
-        
+
         when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
-            .thenReturn(Optional.of(mockToken));
+                .thenReturn(Optional.of(mockToken));
 
         // Act
         boolean result = authService.validateResetToken(token);
@@ -323,7 +333,7 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         // Arrange
         String token = "invalidToken";
         when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         // Act
         boolean result = authService.validateResetToken(token);
@@ -337,17 +347,17 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         // Arrange
         String token = "validToken123";
         String newPassword = "NewSecurePass123!";
-        
+
         PasswordResetToken mockResetToken = new PasswordResetToken();
         mockResetToken.setUser(testUser);
         mockResetToken.setUsed(false);
         mockResetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
-        
+
         when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
-            .thenReturn(Optional.of(mockResetToken));
+                .thenReturn(Optional.of(mockResetToken));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false); // Password not reused
         when(passwordHistoryRepository.findRecentPasswords(any(Login.class), anyInt()))
-            .thenReturn(Collections.emptyList());
+                .thenReturn(Collections.emptyList());
         when(passwordEncoder.encode(newPassword)).thenReturn("newHashedPassword");
 
         // Act
@@ -365,14 +375,14 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         // Arrange
         String token = "invalidToken";
         String newPassword = "NewSecurePass123!";
-        
+
         when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
-            .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty());
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> authService.resetPassword(token, newPassword));
-        
+                () -> authService.resetPassword(token, newPassword));
+
         assertEquals("Invalid or expired reset token", exception.getMessage());
         verify(loginRepository, never()).save(any(Login.class));
     }
@@ -382,21 +392,21 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         // Arrange
         String token = "validToken123";
         String newPassword = "MyOldSecure123!"; // No weak patterns, 14 chars
-        
+
         PasswordResetToken mockResetToken = new PasswordResetToken();
         mockResetToken.setUser(testUser);
         mockResetToken.setUsed(false);
         mockResetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
-        
+
         when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
-            .thenReturn(Optional.of(mockResetToken));
+                .thenReturn(Optional.of(mockResetToken));
         // Current password matches (reuse detected)
         when(passwordEncoder.matches(newPassword, testUser.getPasswordHash())).thenReturn(true);
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> authService.resetPassword(token, newPassword));
-        
+                () -> authService.resetPassword(token, newPassword));
+
         assertTrue(exception.getMessage().contains("reuse"));
         verify(loginRepository, never()).save(any(Login.class));
     }
@@ -406,27 +416,27 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         // Arrange
         String token = "validToken123";
         String newPassword = "HistoricSecure1!"; // No weak patterns, 16 chars
-        
+
         PasswordResetToken mockResetToken = new PasswordResetToken();
         mockResetToken.setUser(testUser);
         mockResetToken.setUsed(false);
         mockResetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
-        
+
         PasswordHistory historyEntry = new PasswordHistory(testUser, "oldHashedPassword");
-        
+
         when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
-            .thenReturn(Optional.of(mockResetToken));
+                .thenReturn(Optional.of(mockResetToken));
         // Current password doesn't match
         when(passwordEncoder.matches(newPassword, testUser.getPasswordHash())).thenReturn(false);
         // But password in history matches (reuse detected)
         when(passwordHistoryRepository.findRecentPasswords(any(Login.class), anyInt()))
-            .thenReturn(List.of(historyEntry));
+                .thenReturn(List.of(historyEntry));
         when(passwordEncoder.matches(newPassword, historyEntry.getPasswordHash())).thenReturn(true);
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> authService.resetPassword(token, newPassword));
-        
+                () -> authService.resetPassword(token, newPassword));
+
         assertTrue(exception.getMessage().contains("reuse"));
         verify(loginRepository, never()).save(any(Login.class));
     }
@@ -436,21 +446,21 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         // Arrange
         String token = "validToken123";
         String weakPassword = "password1234"; // Contains "password" - weak pattern
-        
+
         PasswordResetToken mockResetToken = new PasswordResetToken();
         mockResetToken.setUser(testUser);
         mockResetToken.setUsed(false);
         mockResetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
-        
+
         when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
-            .thenReturn(Optional.of(mockResetToken));
-        // Note: No stubs for passwordEncoder/passwordHistoryRepository 
+                .thenReturn(Optional.of(mockResetToken));
+        // Note: No stubs for passwordEncoder/passwordHistoryRepository
         // because validation fails before reuse check
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> authService.resetPassword(token, weakPassword));
-        
+                () -> authService.resetPassword(token, weakPassword));
+
         assertTrue(exception.getMessage().contains("weak pattern"));
         verify(loginRepository, never()).save(any(Login.class));
     }
@@ -460,21 +470,21 @@ assertTrue(result.isTwoFactorEnabled(), "Doctor should have 2FA enabled by defau
         // Arrange
         String token = "validToken123";
         String shortPassword = "Short1!"; // Less than 12 characters
-        
+
         PasswordResetToken mockResetToken = new PasswordResetToken();
         mockResetToken.setUser(testUser);
         mockResetToken.setUsed(false);
         mockResetToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
-        
+
         when(resetTokenRepository.findValidToken(anyString(), any(LocalDateTime.class)))
-            .thenReturn(Optional.of(mockResetToken));
-        // Note: No stubs for passwordEncoder/passwordHistoryRepository 
+                .thenReturn(Optional.of(mockResetToken));
+        // Note: No stubs for passwordEncoder/passwordHistoryRepository
         // because validation fails before reuse check
 
         // Act & Assert
         RuntimeException exception = assertThrows(RuntimeException.class,
-            () -> authService.resetPassword(token, shortPassword));
-        
+                () -> authService.resetPassword(token, shortPassword));
+
         assertTrue(exception.getMessage().contains("12 characters"));
         verify(loginRepository, never()).save(any(Login.class));
     }

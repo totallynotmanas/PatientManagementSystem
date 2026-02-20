@@ -13,7 +13,10 @@ import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(classes = {
+    com.securehealth.backend.SecureHealthApplication.class,
+    com.securehealth.backend.integration.TestConfig.class
+})
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:h2:mem:testdb",
     "spring.datasource.driverClassName=org.h2.Driver",

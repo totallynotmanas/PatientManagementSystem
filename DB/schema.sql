@@ -43,7 +43,7 @@ CREATE TABLE sessions (
     refresh_token_hash VARCHAR(255) NOT NULL, -- Store hash, not raw token!
     ip_address VARCHAR(45),
     user_agent TEXT,
-    is_revoked BOOLEAN DEFAULT FALSE,
+    revoked BOOLEAN DEFAULT FALSE,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
