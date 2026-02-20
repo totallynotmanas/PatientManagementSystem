@@ -23,7 +23,7 @@ const ConsentManagement = () => {
    const [showHelpSection, setShowHelpSection] = useState(false);
    const [expandedFaq, setExpandedFaq] = useState({});
    const [toast, setToast] = useState(null);
-   
+
    // Form states for modals
    const [withdrawReason, setWithdrawReason] = useState('');
    const [withdrawEffective, setWithdrawEffective] = useState('immediately');
@@ -112,7 +112,7 @@ const ConsentManagement = () => {
       const now = new Date();
       const diffMs = now - date;
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      
+
       if (diffDays === 0) return 'Today';
       if (diffDays === 1) return 'Yesterday';
       if (diffDays < 7) return `${diffDays} days ago`;
@@ -123,10 +123,10 @@ const ConsentManagement = () => {
    // Filter history based on selected filter
    const filteredHistory = useMemo(() => {
       if (historyFilter === 'all') return consentData.history;
-      
+
       const now = new Date();
       let cutoff;
-      
+
       switch (historyFilter) {
          case '30days':
             cutoff = new Date(now.setDate(now.getDate() - 30));
@@ -140,7 +140,7 @@ const ConsentManagement = () => {
          default:
             return consentData.history;
       }
-      
+
       return consentData.history.filter(h => new Date(h.timestamp) >= cutoff);
    }, [historyFilter]);
 
@@ -173,7 +173,7 @@ const ConsentManagement = () => {
    // Confirm withdrawal
    const confirmWithdraw = () => {
       if (!withdrawConfirmed) return;
-      
+
       // In production, this would call an API
       showToast('success', `Consent withdrawn for "${selectedConsent.title}". Confirmation email sent.`);
       setShowWithdrawModal(false);
@@ -250,23 +250,22 @@ const ConsentManagement = () => {
       const isExpanded = expandedCards[consent.id];
 
       return (
-         <Card 
-            key={consent.id} 
-            className={`${statusStyles.border} overflow-hidden transition-all duration-300 hover:shadow-lg`}
+         <Card
+            key={consent.id}
+            className={`${statusStyles.border} overflow-hidden transition-all duration-300 hover:shadow-lg break-inside-avoid mb-3`}
          >
             {/* Card Header */}
-            <div 
+            <div
                className="p-3 cursor-pointer"
                onClick={() => toggleCard(consent.id)}
             >
                <div className="flex items-start justify-between">
                   <div className="flex items-start gap-2">
-                     <div className={`w-8 h-8 rounded flex items-center justify-center ${
-                        consent.status === 'granted' || consent.status === 'active' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' :
+                     <div className={`w-8 h-8 rounded flex items-center justify-center ${consent.status === 'granted' || consent.status === 'active' ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' :
                         consent.status === 'withdrawn' ? 'bg-gray-100 dark:bg-slate-700 text-gray-500 dark:text-slate-400' :
-                        consent.status === 'pending' ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' :
-                        'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                     }`}>
+                           consent.status === 'pending' ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400' :
+                              'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
+                        }`}>
                         <IconComponent className="w-4 h-4" />
                      </div>
                      <div className="flex-1">
@@ -276,12 +275,11 @@ const ConsentManagement = () => {
                         </div>
                         <div className="flex items-center gap-1.5 mt-1">
                            {statusStyles.icon}
-                           <span className={`text-xs font-medium ${
-                              consent.status === 'granted' || consent.status === 'active' ? 'text-green-700 dark:text-green-400' :
+                           <span className={`text-xs font-medium ${consent.status === 'granted' || consent.status === 'active' ? 'text-green-700 dark:text-green-400' :
                               consent.status === 'withdrawn' ? 'text-gray-600 dark:text-slate-300' :
-                              consent.status === 'pending' ? 'text-orange-700 dark:text-orange-400' :
-                              'text-blue-700 dark:text-blue-400'
-                           }`}>
+                                 consent.status === 'pending' ? 'text-orange-700 dark:text-orange-400' :
+                                    'text-blue-700 dark:text-blue-400'
+                              }`}>
                               {statusStyles.text}
                            </span>
                         </div>
@@ -562,7 +560,7 @@ const ConsentManagement = () => {
                      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-slate-700 flex flex-wrap gap-3">
                         {consent.status === 'pending' && (
                            <>
-                              <Button 
+                              <Button
                                  className="bg-brand-medium hover:bg-brand-deep"
                                  onClick={() => handleGrantClick(consent)}
                               >
@@ -609,8 +607,8 @@ const ConsentManagement = () => {
                                     </Button>
                                  </>
                               )}
-                              <Button 
-                                 variant="outline" 
+                              <Button
+                                 variant="outline"
                                  className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                  onClick={() => handleWithdrawClick(consent)}
                               >
@@ -620,7 +618,7 @@ const ConsentManagement = () => {
                            </>
                         )}
                         {consent.status === 'withdrawn' && (
-                           <Button 
+                           <Button
                               className="bg-brand-medium hover:bg-brand-deep"
                               onClick={() => handleGrantClick(consent)}
                            >
@@ -650,11 +648,10 @@ const ConsentManagement = () => {
       <div className="space-y-8">
          {/* Toast Notification */}
          {toast && (
-            <div className={`fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg animate-fade-in flex items-center gap-3 ${
-               toast.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300' :
+            <div className={`fixed top-4 right-4 z-50 p-4 rounded-xl shadow-lg animate-fade-in flex items-center gap-3 ${toast.type === 'success' ? 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300' :
                toast.type === 'error' ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300' :
-               'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300'
-            }`}>
+                  'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300'
+               }`}>
                {toast.type === 'success' && <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />}
                {toast.type === 'error' && <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />}
                <span className="font-medium">{toast.message}</span>
@@ -694,11 +691,10 @@ const ConsentManagement = () => {
                      <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`group inline-flex items-center gap-1.5 px-2 py-2 border-b-2 font-medium text-xs whitespace-nowrap transition-all duration-200 ${
-                           isActive
-                              ? 'border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400'
-                              : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:border-gray-300 dark:hover:border-slate-600'
-                        }`}
+                        className={`group inline-flex items-center gap-1.5 px-2 py-2 border-b-2 font-medium text-xs whitespace-nowrap transition-all duration-200 ${isActive
+                           ? 'border-blue-600 dark:border-blue-400 text-blue-600 dark:text-blue-400'
+                           : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 hover:border-gray-300 dark:hover:border-slate-600'
+                           }`}
                         aria-current={isActive ? 'page' : undefined}
                      >
                         <IconComponent className={`w-3.5 h-3.5 ${isActive ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400 dark:text-slate-500 group-hover:text-gray-500 dark:group-hover:text-slate-400'}`} />
@@ -718,7 +714,7 @@ const ConsentManagement = () => {
                   <div className="flex-1">
                      <h3 className="font-semibold text-blue-900 dark:text-blue-300">Your Healthcare Privacy Rights Under HIPAA</h3>
                      <p className="text-blue-700 dark:text-blue-400 text-sm mt-1">
-                        You have the right to control how your protected health information is used and shared. 
+                        You have the right to control how your protected health information is used and shared.
                         Changes may take 24-48 hours to process.
                      </p>
                   </div>
@@ -729,260 +725,259 @@ const ConsentManagement = () => {
                </div>
 
                {/* Summary Cards */}
-         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-md transition-shadow duration-300 flex items-center justify-between group">
-               <div>
-                  <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Active Consents</h3>
-                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
-                     {consentData.summary.activeConsents}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">active consents</p>
-               </div>
-               <div className="w-8 h-8 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
-                  <CheckCircle className="w-4 h-4" />
-               </div>
-            </Card>
-
-            <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-md transition-shadow duration-300 flex items-center justify-between group">
-               <div>
-                  <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Pending Review</h3>
-                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                     {consentData.summary.pendingReview}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">pending review</p>
-               </div>
-               <div className="w-8 h-8 bg-orange-50 dark:bg-orange-900/20 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
-                  <Clock className="w-4 h-4" />
-               </div>
-            </Card>
-
-            <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-md transition-shadow duration-300 flex items-center justify-between group">
-               <div>
-                  <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Withdrawn</h3>
-                  <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-gray-600 dark:group-hover:text-slate-300 transition-colors">
-                     {consentData.summary.withdrawn}
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-slate-400">withdrawn</p>
-               </div>
-               <div className="w-8 h-8 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-gray-500 dark:text-slate-400 group-hover:scale-110 transition-transform">
-                  <XCircle className="w-4 h-4" />
-               </div>
-            </Card>
-         </div>
-
-         {/* Consent Categories Section */}
-         <div>
-            <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 mb-2 flex items-center gap-1.5">
-               <FileText className="w-4 h-4 text-gray-400 dark:text-slate-500" />
-               Consent Categories
-            </h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-               {consentData.consents.map(consent => renderConsentCard(consent))}
-            </div>
-         </div>
-
-         {/* Consent History Timeline */}
-         <Card className="overflow-hidden border border-gray-100 dark:border-slate-700 shadow-soft">
-            <div className="px-3 py-2.5 border-b border-gray-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white dark:bg-slate-800">
-               <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 flex items-center gap-1.5">
-                  <History className="w-4 h-4 text-gray-400 dark:text-slate-500" />
-                  Consent History
-               </h3>
-               <div className="flex items-center gap-2">
-                  <select 
-                     value={historyFilter}
-                     onChange={(e) => setHistoryFilter(e.target.value)}
-                     className="text-xs border border-gray-300 dark:border-slate-600 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
-                  >
-                     <option value="all">All changes</option>
-                     <option value="30days">Last 30 days</option>
-                     <option value="6months">Last 6 months</option>
-                     <option value="1year">Last year</option>
-                  </select>
-                  <Button variant="outline" size="sm" className="p-2" title="Export History">
-                     <Download className="w-4 h-4" />
-                  </Button>
-               </div>
-            </div>
-            <div className="p-6">
-               <div className="relative">
-                  {/* Timeline line */}
-                  <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-slate-700" />
-                  
-                  {/* Timeline items */}
-                  <div className="space-y-6">
-                     {filteredHistory.map((item, idx) => (
-                        <div key={item.id} className="relative pl-10">
-                           {/* Timeline dot */}
-                           <div className={`absolute left-2 w-5 h-5 rounded-full flex items-center justify-center ${
-                              item.action === 'granted' ? 'bg-green-100 dark:bg-green-900/30' :
-                              item.action === 'withdrawn' ? 'bg-red-100 dark:bg-red-900/30' :
-                              'bg-yellow-100 dark:bg-yellow-900/30'
-                           }`}>
-                              {item.action === 'granted' && <Check className="w-3 h-3 text-green-600 dark:text-green-400" />}
-                              {item.action === 'withdrawn' && <X className="w-3 h-3 text-red-600 dark:text-red-400" />}
-                              {item.action === 'modified' && <Edit3 className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />}
-                           </div>
-                           
-                           {/* Content */}
-                           <div className="bg-gray-50 dark:bg-slate-800/50 rounded-lg p-4">
-                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                                 <div className="flex items-center gap-2">
-                                    {getActionBadge(item.action)}
-                                    <span className="font-medium text-gray-900 dark:text-slate-100">{item.categoryTitle}</span>
-                                 </div>
-                                 <span className="text-sm text-gray-500 dark:text-slate-400">{formatDateTime(item.timestamp)}</span>
-                              </div>
-                              <p className="text-sm text-gray-600 dark:text-slate-300 mt-2">{item.details}</p>
-                              <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Changed by: {item.changedByName}</p>
-                           </div>
-                        </div>
-                     ))}
-                  </div>
-               </div>
-            </div>
-         </Card>
-
-         {/* Help & Information Section */}
-         <Card className="overflow-hidden border border-gray-100 dark:border-slate-700 shadow-soft">
-            <div 
-               className="px-6 py-5 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
-               onClick={() => setShowHelpSection(!showHelpSection)}
-            >
-               <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5 text-gray-400 dark:text-slate-500" />
-                  Understanding Your Privacy Rights
-               </h3>
-               {showHelpSection ? (
-                  <ChevronUp className="w-5 h-5 text-gray-400 dark:text-slate-500" />
-               ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-400 dark:text-slate-500" />
-               )}
-            </div>
-            
-            {showHelpSection && (
-               <div className="p-6 animate-fade-in">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     {/* What is HIPAA */}
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-md transition-shadow duration-300 flex items-center justify-between group">
                      <div>
-                        <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-3">What is HIPAA?</h4>
-                        <p className="text-sm text-gray-600 dark:text-slate-300">
-                           HIPAA (Health Insurance Portability and Accountability Act) is a federal law that 
-                           protects the privacy and security of your health information. It gives you rights 
-                           over your health information and sets limits on who can access it.
+                        <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Active Consents</h3>
+                        <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors">
+                           {consentData.summary.activeConsents}
                         </p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">active consents</p>
                      </div>
+                     <div className="w-8 h-8 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
+                        <CheckCircle className="w-4 h-4" />
+                     </div>
+                  </Card>
 
-                     {/* Your Rights */}
+                  <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-md transition-shadow duration-300 flex items-center justify-between group">
                      <div>
-                        <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-3">Your Rights Under HIPAA</h4>
-                        <ul className="space-y-2 text-sm text-gray-600 dark:text-slate-300">
-                           <li className="flex items-start gap-2">
-                              <Check className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                              Right to access your medical records
-                           </li>
-                           <li className="flex items-start gap-2">
-                              <Check className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                              Right to request corrections to your records
-                           </li>
-                           <li className="flex items-start gap-2">
-                              <Check className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                              Right to know who has accessed your information
-                           </li>
-                           <li className="flex items-start gap-2">
-                              <Check className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                              Right to request restrictions on use/disclosure
-                           </li>
-                           <li className="flex items-start gap-2">
-                              <Check className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                              Right to file a complaint if you believe your rights were violated
-                           </li>
-                        </ul>
+                        <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Pending Review</h3>
+                        <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
+                           {consentData.summary.pendingReview}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">pending review</p>
+                     </div>
+                     <div className="w-8 h-8 bg-orange-50 dark:bg-orange-900/20 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-400 group-hover:scale-110 transition-transform">
+                        <Clock className="w-4 h-4" />
+                     </div>
+                  </Card>
+
+                  <Card className="p-3 border border-gray-100 dark:border-slate-700 shadow-soft hover:shadow-md transition-shadow duration-300 flex items-center justify-between group">
+                     <div>
+                        <h3 className="text-gray-500 dark:text-slate-400 text-xs font-medium">Withdrawn</h3>
+                        <p className="text-xl font-bold text-gray-800 dark:text-slate-100 mt-1 group-hover:text-gray-600 dark:group-hover:text-slate-300 transition-colors">
+                           {consentData.summary.withdrawn}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400">withdrawn</p>
+                     </div>
+                     <div className="w-8 h-8 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center text-gray-500 dark:text-slate-400 group-hover:scale-110 transition-transform">
+                        <XCircle className="w-4 h-4" />
+                     </div>
+                  </Card>
+               </div>
+
+               {/* Consent Categories Section */}
+               <div>
+                  <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 mb-2 flex items-center gap-1.5">
+                     <FileText className="w-4 h-4 text-gray-400 dark:text-slate-500" />
+                     Consent Categories
+                  </h3>
+                  <div className="columns-1 lg:columns-2 gap-3">
+                     {consentData.consents.map(consent => renderConsentCard(consent))}
+                  </div>
+               </div>
+
+               {/* Consent History Timeline */}
+               <Card className="overflow-hidden border border-gray-100 dark:border-slate-700 shadow-soft">
+                  <div className="px-3 py-2.5 border-b border-gray-100 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-white dark:bg-slate-800">
+                     <h3 className="text-sm font-bold text-gray-800 dark:text-slate-100 flex items-center gap-1.5">
+                        <History className="w-4 h-4 text-gray-400 dark:text-slate-500" />
+                        Consent History
+                     </h3>
+                     <div className="flex items-center gap-2">
+                        <select
+                           value={historyFilter}
+                           onChange={(e) => setHistoryFilter(e.target.value)}
+                           className="text-xs border border-gray-300 dark:border-slate-600 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100"
+                        >
+                           <option value="all">All changes</option>
+                           <option value="30days">Last 30 days</option>
+                           <option value="6months">Last 6 months</option>
+                           <option value="1year">Last year</option>
+                        </select>
+                        <Button variant="outline" size="sm" className="p-2" title="Export History">
+                           <Download className="w-4 h-4" />
+                        </Button>
                      </div>
                   </div>
+                  <div className="p-6">
+                     <div className="relative">
+                        {/* Timeline line */}
+                        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-slate-700" />
 
-                  {/* FAQ */}
-                  <div className="mt-8">
-                     <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">Frequently Asked Questions</h4>
-                     <div className="space-y-3">
-                        {consentData.faq.map((faq) => (
-                           <div key={faq.id} className="border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
-                              <button 
-                                 className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
-                                 onClick={() => toggleFaq(faq.id)}
-                              >
-                                 <span className="font-medium text-gray-800 dark:text-slate-100">{faq.question}</span>
-                                 {expandedFaq[faq.id] ? (
-                                    <ChevronUp className="w-5 h-5 text-gray-400 dark:text-slate-500" />
-                                 ) : (
-                                    <ChevronDown className="w-5 h-5 text-gray-400 dark:text-slate-500" />
-                                 )}
-                              </button>
-                              {expandedFaq[faq.id] && (
-                                 <div className="px-4 pb-3 pt-1 text-sm text-gray-600 dark:text-slate-300 animate-fade-in">
-                                    {faq.answer}
+                        {/* Timeline items */}
+                        <div className="space-y-6">
+                           {filteredHistory.map((item, idx) => (
+                              <div key={item.id} className="relative pl-10">
+                                 {/* Timeline dot */}
+                                 <div className={`absolute left-2 w-5 h-5 rounded-full flex items-center justify-center ${item.action === 'granted' ? 'bg-green-100 dark:bg-green-900/30' :
+                                    item.action === 'withdrawn' ? 'bg-red-100 dark:bg-red-900/30' :
+                                       'bg-yellow-100 dark:bg-yellow-900/30'
+                                    }`}>
+                                    {item.action === 'granted' && <Check className="w-3 h-3 text-green-600 dark:text-green-400" />}
+                                    {item.action === 'withdrawn' && <X className="w-3 h-3 text-red-600 dark:text-red-400" />}
+                                    {item.action === 'modified' && <Edit3 className="w-3 h-3 text-yellow-600 dark:text-yellow-400" />}
                                  </div>
-                              )}
+
+                                 {/* Content */}
+                                 <div className="bg-gray-50 dark:bg-slate-800/50 rounded-lg p-4">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                       <div className="flex items-center gap-2">
+                                          {getActionBadge(item.action)}
+                                          <span className="font-medium text-gray-900 dark:text-slate-100">{item.categoryTitle}</span>
+                                       </div>
+                                       <span className="text-sm text-gray-500 dark:text-slate-400">{formatDateTime(item.timestamp)}</span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 dark:text-slate-300 mt-2">{item.details}</p>
+                                    <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Changed by: {item.changedByName}</p>
+                                 </div>
+                              </div>
+                           ))}
+                        </div>
+                     </div>
+                  </div>
+               </Card>
+
+               {/* Help & Information Section */}
+               <Card className="overflow-hidden border border-gray-100 dark:border-slate-700 shadow-soft">
+                  <div
+                     className="px-6 py-5 border-b border-gray-100 dark:border-slate-700 flex justify-between items-center cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+                     onClick={() => setShowHelpSection(!showHelpSection)}
+                  >
+                     <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
+                        <HelpCircle className="w-5 h-5 text-gray-400 dark:text-slate-500" />
+                        Understanding Your Privacy Rights
+                     </h3>
+                     {showHelpSection ? (
+                        <ChevronUp className="w-5 h-5 text-gray-400 dark:text-slate-500" />
+                     ) : (
+                        <ChevronDown className="w-5 h-5 text-gray-400 dark:text-slate-500" />
+                     )}
+                  </div>
+
+                  {showHelpSection && (
+                     <div className="p-6 animate-fade-in">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                           {/* What is HIPAA */}
+                           <div>
+                              <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-3">What is HIPAA?</h4>
+                              <p className="text-sm text-gray-600 dark:text-slate-300">
+                                 HIPAA (Health Insurance Portability and Accountability Act) is a federal law that
+                                 protects the privacy and security of your health information. It gives you rights
+                                 over your health information and sets limits on who can access it.
+                              </p>
                            </div>
-                        ))}
-                     </div>
-                  </div>
 
-                  {/* Contact Information */}
-                  <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
-                     <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-3">Contact Our Privacy Officer</h4>
-                     <div className="flex flex-wrap gap-6 text-sm">
-                        <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                           <Mail className="w-4 h-4" />
-                           <span>{consentData.privacyOfficer.email}</span>
+                           {/* Your Rights */}
+                           <div>
+                              <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-3">Your Rights Under HIPAA</h4>
+                              <ul className="space-y-2 text-sm text-gray-600 dark:text-slate-300">
+                                 <li className="flex items-start gap-2">
+                                    <Check className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                                    Right to access your medical records
+                                 </li>
+                                 <li className="flex items-start gap-2">
+                                    <Check className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                                    Right to request corrections to your records
+                                 </li>
+                                 <li className="flex items-start gap-2">
+                                    <Check className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                                    Right to know who has accessed your information
+                                 </li>
+                                 <li className="flex items-start gap-2">
+                                    <Check className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                                    Right to request restrictions on use/disclosure
+                                 </li>
+                                 <li className="flex items-start gap-2">
+                                    <Check className="w-4 h-4 text-green-500 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                                    Right to file a complaint if you believe your rights were violated
+                                 </li>
+                              </ul>
+                           </div>
                         </div>
-                        <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                           <Phone className="w-4 h-4" />
-                           <span>{consentData.privacyOfficer.phone}</span>
+
+                        {/* FAQ */}
+                        <div className="mt-8">
+                           <h4 className="font-semibold text-gray-800 dark:text-slate-100 mb-4">Frequently Asked Questions</h4>
+                           <div className="space-y-3">
+                              {consentData.faq.map((faq) => (
+                                 <div key={faq.id} className="border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
+                                    <button
+                                       className="w-full px-4 py-3 flex items-center justify-between text-left hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
+                                       onClick={() => toggleFaq(faq.id)}
+                                    >
+                                       <span className="font-medium text-gray-800 dark:text-slate-100">{faq.question}</span>
+                                       {expandedFaq[faq.id] ? (
+                                          <ChevronUp className="w-5 h-5 text-gray-400 dark:text-slate-500" />
+                                       ) : (
+                                          <ChevronDown className="w-5 h-5 text-gray-400 dark:text-slate-500" />
+                                       )}
+                                    </button>
+                                    {expandedFaq[faq.id] && (
+                                       <div className="px-4 pb-3 pt-1 text-sm text-gray-600 dark:text-slate-300 animate-fade-in">
+                                          {faq.answer}
+                                       </div>
+                                    )}
+                                 </div>
+                              ))}
+                           </div>
                         </div>
-                        <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
-                           <Clock className="w-4 h-4" />
-                           <span>{consentData.privacyOfficer.hours}</span>
+
+                        {/* Contact Information */}
+                        <div className="mt-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6">
+                           <h4 className="font-semibold text-blue-900 dark:text-blue-300 mb-3">Contact Our Privacy Officer</h4>
+                           <div className="flex flex-wrap gap-6 text-sm">
+                              <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                                 <Mail className="w-4 h-4" />
+                                 <span>{consentData.privacyOfficer.email}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                                 <Phone className="w-4 h-4" />
+                                 <span>{consentData.privacyOfficer.phone}</span>
+                              </div>
+                              <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
+                                 <Clock className="w-4 h-4" />
+                                 <span>{consentData.privacyOfficer.hours}</span>
+                              </div>
+                           </div>
                         </div>
                      </div>
+                  )}
+               </Card>
+
+               {/* Legal Notices Footer */}
+               <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-6 border border-gray-200 dark:border-slate-700">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                     <div className="flex flex-wrap gap-4">
+                        <a href={consentData.legalLinks.privacyNotice} className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-1">
+                           <FileText className="w-4 h-4" />
+                           Notice of Privacy Practices
+                           <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <a href={consentData.legalLinks.privacyRights} className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-1">
+                           <Shield className="w-4 h-4" />
+                           Your Privacy Rights
+                           <ExternalLink className="w-3 h-3" />
+                        </a>
+                        <a href={consentData.legalLinks.fileComplaint} className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-1">
+                           <AlertTriangle className="w-4 h-4" />
+                           File a Privacy Complaint
+                           <ExternalLink className="w-3 h-3" />
+                        </a>
+                     </div>
+                     <p className="text-xs text-gray-500 dark:text-slate-400">
+                        Privacy Notice last updated: {formatDate(consentData.lastPrivacyNoticeUpdate)}
+                     </p>
+                  </div>
+                  <div className="mt-4 text-xs text-gray-500 dark:text-slate-400">
+                     <p className="font-medium mb-1">Important Legal Notice:</p>
+                     <p>
+                        Some uses and disclosures of your health information are required by law and do not require your
+                        authorization, including: public health reporting, legal proceedings, law enforcement, and other
+                        activities as permitted by HIPAA.
+                     </p>
                   </div>
                </div>
-            )}
-         </Card>
-
-         {/* Legal Notices Footer */}
-         <div className="bg-gray-50 dark:bg-slate-800/50 rounded-xl p-6 border border-gray-200 dark:border-slate-700">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-               <div className="flex flex-wrap gap-4">
-                  <a href={consentData.legalLinks.privacyNotice} className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-1">
-                     <FileText className="w-4 h-4" />
-                     Notice of Privacy Practices
-                     <ExternalLink className="w-3 h-3" />
-                  </a>
-                  <a href={consentData.legalLinks.privacyRights} className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-1">
-                     <Shield className="w-4 h-4" />
-                     Your Privacy Rights
-                     <ExternalLink className="w-3 h-3" />
-                  </a>
-                  <a href={consentData.legalLinks.fileComplaint} className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center gap-1">
-                     <AlertTriangle className="w-4 h-4" />
-                     File a Privacy Complaint
-                     <ExternalLink className="w-3 h-3" />
-                  </a>
-               </div>
-               <p className="text-xs text-gray-500 dark:text-slate-400">
-                  Privacy Notice last updated: {formatDate(consentData.lastPrivacyNoticeUpdate)}
-               </p>
-            </div>
-            <div className="mt-4 text-xs text-gray-500 dark:text-slate-400">
-               <p className="font-medium mb-1">Important Legal Notice:</p>
-               <p>
-                  Some uses and disclosures of your health information are required by law and do not require your 
-                  authorization, including: public health reporting, legal proceedings, law enforcement, and other 
-                  activities as permitted by HIPAA.
-               </p>
-            </div>
-         </div>
             </>
          )}
 
@@ -998,7 +993,7 @@ const ConsentManagement = () => {
                      <div className="flex-1">
                         <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">Grant or Modify Your Consents</h3>
                         <p className="text-gray-600 dark:text-slate-300 mt-1">
-                           Select any consent category below to grant new consent or modify existing preferences. 
+                           Select any consent category below to grant new consent or modify existing preferences.
                            Each consent can be tailored with granular options for your comfort level.
                         </p>
                      </div>
@@ -1011,20 +1006,18 @@ const ConsentManagement = () => {
                      const IconComponent = iconMap[consent.icon];
                      const statusStyles = getStatusStyles(consent.status, consent.type);
                      const isGranted = consent.status === 'active' || consent.status === 'granted';
-                     
+
                      return (
-                        <Card 
-                           key={consent.id} 
+                        <Card
+                           key={consent.id}
                            className={`p-6 border ${statusStyles.border} shadow-soft hover:shadow-lg transition-all duration-300`}
                         >
                            <div className="flex items-start justify-between mb-4">
                               <div className="flex items-center gap-3">
-                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                                    isGranted ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-slate-700'
-                                 }`}>
-                                    {IconComponent && <IconComponent className={`w-5 h-5 ${
-                                       isGranted ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-slate-400'
-                                    }`} />}
+                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isGranted ? 'bg-green-100 dark:bg-green-900/30' : 'bg-gray-100 dark:bg-slate-700'
+                                    }`}>
+                                    {IconComponent && <IconComponent className={`w-5 h-5 ${isGranted ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-slate-400'
+                                       }`} />}
                                  </div>
                                  <div>
                                     <h4 className="font-semibold text-gray-800 dark:text-slate-100">{consent.title}</h4>
@@ -1037,9 +1030,9 @@ const ConsentManagement = () => {
                                  </div>
                               </div>
                            </div>
-                           
+
                            <p className="text-sm text-gray-600 dark:text-slate-300 mb-4">{consent.description}</p>
-                           
+
                            {consent.includes && (
                               <div className="mb-4">
                                  <p className="text-xs font-medium text-gray-500 dark:text-slate-400 mb-2">Includes:</p>
@@ -1056,10 +1049,10 @@ const ConsentManagement = () => {
                                  </ul>
                               </div>
                            )}
-                           
+
                            <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-slate-700">
                               {!isGranted ? (
-                                 <Button 
+                                 <Button
                                     className="flex-1 bg-brand-medium hover:bg-brand-deep text-white"
                                     onClick={() => handleGrantClick(consent, 'grant')}
                                  >
@@ -1068,7 +1061,7 @@ const ConsentManagement = () => {
                                  </Button>
                               ) : (
                                  <>
-                                    <Button 
+                                    <Button
                                        variant="outline"
                                        className="flex-1"
                                        onClick={() => handleGrantClick(consent, 'modify')}
@@ -1077,7 +1070,7 @@ const ConsentManagement = () => {
                                        Modify
                                     </Button>
                                     {consent.type !== 'required' && (
-                                       <Button 
+                                       <Button
                                           variant="outline"
                                           className="text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                                           onClick={() => handleWithdrawClick(consent)}
@@ -1101,7 +1094,7 @@ const ConsentManagement = () => {
                      Quick Actions
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                     <button 
+                     <button
                         className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-left"
                         onClick={() => {
                            const pendingConsent = consentData.consents.find(c => c.status === 'pending');
@@ -1113,7 +1106,7 @@ const ConsentManagement = () => {
                         <h4 className="font-medium text-gray-800 dark:text-slate-100">Review Pending</h4>
                         <p className="text-sm text-gray-600 dark:text-slate-300 mt-1">Review and respond to pending consent requests</p>
                      </button>
-                     <button 
+                     <button
                         className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors text-left"
                         onClick={() => showToast('success', 'All consents have been reviewed and are up to date')}
                      >
@@ -1121,7 +1114,7 @@ const ConsentManagement = () => {
                         <h4 className="font-medium text-gray-800 dark:text-slate-100">Review All</h4>
                         <p className="text-sm text-gray-600 dark:text-slate-300 mt-1">Confirm all current consents are accurate</p>
                      </button>
-                     <button 
+                     <button
                         className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors text-left"
                         onClick={() => showToast('info', 'Consent summary downloaded')}
                      >
@@ -1146,7 +1139,7 @@ const ConsentManagement = () => {
                      <div className="flex-1">
                         <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100">Health Data Management</h3>
                         <p className="text-gray-600 dark:text-slate-300 mt-1">
-                           Manage how your health data is stored, accessed, and shared. 
+                           Manage how your health data is stored, accessed, and shared.
                            You have full control over your personal health information.
                         </p>
                      </div>
@@ -1235,12 +1228,11 @@ const ConsentManagement = () => {
                         <div key={log.id} className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                            <div className="flex items-center justify-between">
                               <div className="flex items-center gap-3">
-                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                    log.type === 'view' ? 'bg-blue-100 dark:bg-blue-900/30' :
+                                 <div className={`w-8 h-8 rounded-full flex items-center justify-center ${log.type === 'view' ? 'bg-blue-100 dark:bg-blue-900/30' :
                                     log.type === 'add' ? 'bg-green-100 dark:bg-green-900/30' :
-                                    log.type === 'sync' ? 'bg-purple-100 dark:bg-purple-900/30' :
-                                    'bg-orange-100 dark:bg-orange-900/30'
-                                 }`}>
+                                       log.type === 'sync' ? 'bg-purple-100 dark:bg-purple-900/30' :
+                                          'bg-orange-100 dark:bg-orange-900/30'
+                                    }`}>
                                     {log.type === 'view' && <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
                                     {log.type === 'add' && <Plus className="w-4 h-4 text-green-600 dark:text-green-400" />}
                                     {log.type === 'sync' && <RefreshCw className="w-4 h-4 text-purple-600 dark:text-purple-400" />}
@@ -1275,7 +1267,7 @@ const ConsentManagement = () => {
                         Download a complete copy of your health records in various formats for your personal use or to share with other providers.
                      </p>
                      <div className="space-y-3">
-                        <button 
+                        <button
                            className="w-full p-3 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors flex items-center justify-between"
                            onClick={() => showToast('success', 'PDF export started. Check your email.')}
                         >
@@ -1285,7 +1277,7 @@ const ConsentManagement = () => {
                            </div>
                            <ChevronDown className="w-4 h-4 text-gray-400 dark:text-slate-500 rotate-[-90deg]" />
                         </button>
-                        <button 
+                        <button
                            className="w-full p-3 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors flex items-center justify-between"
                            onClick={() => showToast('success', 'FHIR export started. Check your email.')}
                         >
@@ -1295,7 +1287,7 @@ const ConsentManagement = () => {
                            </div>
                            <ChevronDown className="w-4 h-4 text-gray-400 dark:text-slate-500 rotate-[-90deg]" />
                         </button>
-                        <button 
+                        <button
                            className="w-full p-3 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors flex items-center justify-between"
                            onClick={() => showToast('success', 'C-CDA export started. Check your email.')}
                         >
@@ -1323,14 +1315,14 @@ const ConsentManagement = () => {
                            <div>
                               <p className="text-sm font-medium text-yellow-800 dark:text-yellow-300">Important Notice</p>
                               <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1">
-                                 Some medical records cannot be deleted due to legal retention requirements. 
+                                 Some medical records cannot be deleted due to legal retention requirements.
                                  A privacy officer will review all deletion requests.
                               </p>
                            </div>
                         </div>
                      </div>
-                     <Button 
-                        variant="outline" 
+                     <Button
+                        variant="outline"
                         className="w-full text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                         onClick={() => showToast('info', 'Deletion request form will open in a new window')}
                      >
@@ -1340,53 +1332,14 @@ const ConsentManagement = () => {
                   </Card>
                </div>
 
-               {/* Connected Apps & Services */}
-               <Card className="overflow-hidden border border-gray-100 dark:border-slate-700 shadow-soft">
-                  <div className="px-6 py-5 border-b border-gray-100 dark:border-slate-700 bg-white dark:bg-slate-800">
-                     <h3 className="text-lg font-bold text-gray-800 dark:text-slate-100 flex items-center gap-2">
-                        <Network className="w-5 h-5 text-gray-400 dark:text-slate-500" />
-                        Connected Apps & Services
-                     </h3>
-                  </div>
-                  <div className="divide-y divide-gray-100 dark:divide-slate-700">
-                     {[
-                        { id: 1, name: 'MyChart Mobile App', type: 'Mobile App', connected: '2025-06-15', status: 'active' },
-                        { id: 2, name: 'Apple Health', type: 'Health Sync', connected: '2025-08-22', status: 'active' },
-                        { id: 3, name: 'Fitbit', type: 'Fitness Tracker', connected: '2025-09-10', status: 'active' }
-                     ].map((app) => (
-                        <div key={app.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
-                           <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-gray-100 dark:bg-slate-700 rounded-lg flex items-center justify-center">
-                                 <Monitor className="w-5 h-5 text-gray-600 dark:text-slate-300" />
-                              </div>
-                              <div>
-                                 <p className="font-medium text-gray-800 dark:text-slate-100">{app.name}</p>
-                                 <p className="text-sm text-gray-500 dark:text-slate-400">{app.type} • Connected {formatDate(app.connected)}</p>
-                              </div>
-                           </div>
-                           <div className="flex items-center gap-3">
-                              <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">Active</Badge>
-                              <Button variant="outline" size="sm" className="p-2 text-red-600 dark:text-red-400 border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20" title="Revoke Access">
-                                 <X className="w-4 h-4" />
-                              </Button>
-                           </div>
-                        </div>
-                     ))}
-                  </div>
-                  <div className="px-6 py-4 bg-gray-50 dark:bg-slate-800/50 border-t border-gray-100 dark:border-slate-700">
-                     <Button variant="outline" className="w-full">
-                        <Plus className="w-4 h-4 mr-2" />
-                        Connect New App
-                     </Button>
-                  </div>
-               </Card>
+
             </>
          )}
 
          {/* Withdraw Consent Modal */}
          {showWithdrawModal && selectedConsent && (
-            <Modal 
-               isOpen={showWithdrawModal} 
+            <Modal
+               isOpen={showWithdrawModal}
                onClose={() => setShowWithdrawModal(false)}
                title={`Withdraw Consent for ${selectedConsent.title}`}
             >
@@ -1430,9 +1383,9 @@ const ConsentManagement = () => {
                      </label>
                      <div className="space-y-2">
                         <label className="flex items-center gap-2">
-                           <input 
-                              type="radio" 
-                              name="effective" 
+                           <input
+                              type="radio"
+                              name="effective"
                               value="immediately"
                               checked={withdrawEffective === 'immediately'}
                               onChange={(e) => setWithdrawEffective(e.target.value)}
@@ -1441,9 +1394,9 @@ const ConsentManagement = () => {
                            <span className="text-sm text-gray-700 dark:text-slate-200">Immediately</span>
                         </label>
                         <label className="flex items-center gap-2">
-                           <input 
-                              type="radio" 
-                              name="effective" 
+                           <input
+                              type="radio"
+                              name="effective"
                               value="specific"
                               checked={withdrawEffective === 'specific'}
                               onChange={(e) => setWithdrawEffective(e.target.value)}
@@ -1471,8 +1424,8 @@ const ConsentManagement = () => {
                   {/* Confirmation checkbox */}
                   <div>
                      <label className="flex items-start gap-2">
-                        <input 
-                           type="checkbox" 
+                        <input
+                           type="checkbox"
                            checked={withdrawConfirmed}
                            onChange={(e) => setWithdrawConfirmed(e.target.checked)}
                            className="mt-1 text-blue-600 dark:text-blue-400"
@@ -1488,7 +1441,7 @@ const ConsentManagement = () => {
                      <Button variant="outline" onClick={() => setShowWithdrawModal(false)}>
                         Cancel
                      </Button>
-                     <Button 
+                     <Button
                         className="bg-red-600 hover:bg-red-700 text-white"
                         disabled={!withdrawConfirmed}
                         onClick={confirmWithdraw}
@@ -1509,8 +1462,8 @@ const ConsentManagement = () => {
             }}
             category={selectedConsent ? getFormCategory(selectedConsent.id) : 'research'}
             mode={consentMode}
-            existingSelections={consentMode === 'modify' && selectedConsent ? { 
-               [selectedConsent.id]: true 
+            existingSelections={consentMode === 'modify' && selectedConsent ? {
+               [selectedConsent.id]: true
             } : {}}
             onSubmit={handleConsentSubmit}
          />

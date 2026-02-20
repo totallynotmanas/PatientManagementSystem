@@ -25,6 +25,7 @@ import PatientMedicalHistory from './pages/patient/MedicalHistory.jsx';
 import PatientMedications from './pages/patient/Medications.jsx';
 import PatientPrescriptions from './pages/patient/Prescriptions.jsx';
 import PatientProfile from './pages/patient/Profile.jsx';
+import PatientConsents from './pages/patient/ConsentManagement.jsx';
 import NurseDashboard from './pages/nurse/Dashboard.jsx';
 import NurseVitals from './pages/nurse/Vitals.jsx';
 import NurseProfile from './pages/nurse/Profile.jsx';
@@ -114,6 +115,7 @@ function App() {
         <Route path="medications" element={<PatientMedications />} />
         <Route path="prescriptions" element={<PatientPrescriptions />} />
         <Route path="profile" element={<PatientProfile />} />
+        <Route path="consents" element={<PatientConsents />} />
       </Route>
 
       {/* Nurse Dashboard */}

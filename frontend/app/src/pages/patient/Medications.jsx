@@ -325,7 +325,7 @@ const Medications = () => {
                         {activeTab === 'active' && medication.canRefill && (
                            <button
                               onClick={() => handleRefillRequest(medication)}
-                              className="flex-1 px-2 py-1.5 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 inline-flex items-center justify-center"
+                              className="px-3 py-1.5 bg-green-600 text-white rounded text-xs font-medium hover:bg-green-700 inline-flex items-center justify-center whitespace-nowrap shrink-0"
                            >
                               <RefreshCw className="w-3 h-3 mr-1" />Refill
                            </button>
