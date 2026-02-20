@@ -14,7 +14,7 @@ import { useAuth } from '../../contexts/AuthContext';
 const PatientDashboard = () => {
    const { user } = useAuth();
    const navigate = useNavigate();
-   const patientId = user?.id || 'P001';
+   const patientId = user?.id || 1;
 
    // State with Mock Fallbacks
    const [patient, setPatient] = useState(getPatientById(patientId));

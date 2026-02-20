@@ -3,9 +3,13 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8081/api
 
 // Helper function for API calls
 const apiCall = async (endpoint, options = {}) => {
+   // Try resolving a token to inject the Bearer header
+   const token = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken') || null;
+
    const config = {
       headers: {
          'Content-Type': 'application/json',
+         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
          ...options.headers,
       },
       credentials: 'include', // Include cookies for authentication
