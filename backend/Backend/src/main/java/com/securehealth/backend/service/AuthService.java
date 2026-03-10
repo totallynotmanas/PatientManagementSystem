@@ -16,6 +16,7 @@ import com.securehealth.backend.dto.LoginResponse;
 import com.securehealth.backend.dto.RegistrationRequest;
 import com.securehealth.backend.model.PatientProfile;
 import com.securehealth.backend.util.JwtUtil;
+import com.securehealth.backend.util.EmailValidatorUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -104,6 +105,11 @@ public class AuthService {
         String email = request.getEmail();
         Role role = request.getRole();
         
+        if (!EmailValidatorUtil.hasMxRecord(email)) {
+            logEvent(email, "REGISTRATION_FAILED", "UNKNOWN", "UNKNOWN", "Invalid email domain: No mail server found");
+            throw new RuntimeException("Invalid email domain: No mail server found.");
+        }
+
         if (loginRepository.existsByEmail(email)) {
             logEvent(email, "REGISTRATION_FAILED", "UNKNOWN", "UNKNOWN", "Email already taken");
             throw new RuntimeException("Email already taken");
