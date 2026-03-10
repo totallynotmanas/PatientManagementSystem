@@ -20,3 +20,6 @@ jobs:
             git pull origin main
             sudo docker-compose down
             sudo docker-compose up -d --build
+            cd frontend/app
+            NODE_OPTIONS="--max-old-space-size=2048" npm run build
+            pm2 start serve --name "patient-frontend" -- -s build -l 3000
