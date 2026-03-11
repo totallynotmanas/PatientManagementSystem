@@ -67,4 +67,31 @@ public class EmailService {
         );
         mailSender.send(msg);
     }
+
+    /**
+     * Sends a welcome email to a newly created staff member containing their login credentials.
+     *
+     * @param to       The staff member's email address.
+     * @param fullName The staff member's full name.
+     * @param role     The role assigned to the staff member.
+     * @param password The temporary password set by the admin.
+     */
+    public void sendStaffWelcome(String to, String fullName, String role, String password) {
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setTo(to);
+        msg.setSubject("Welcome to SecureHealth – Your Account Details");
+        msg.setText(
+            "Hello " + fullName + ",\n\n" +
+            "An account has been created for you on the SecureHealth platform.\n\n" +
+            "Your login credentials are:\n" +
+            "  Email:    " + to + "\n" +
+            "  Password: " + password + "\n" +
+            "  Role:     " + role + "\n\n" +
+            "Please log in and change your password immediately after your first sign-in.\n\n" +
+            "If you believe this account was created in error, contact your system administrator.\n\n" +
+            "Best regards,\n" +
+            "SecureHealth Admin Team"
+        );
+        mailSender.send(msg);
+    }
 }

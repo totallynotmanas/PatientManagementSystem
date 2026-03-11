@@ -13,7 +13,7 @@ export const Table = ({ children, className = '' }) => {
 export const TableHead = ({ children }) => {
     return (
         <thead className="bg-gray-50 dark:bg-slate-800/50">
-            <tr>{children}</tr>
+            {children}
         </thead>
     );
 };

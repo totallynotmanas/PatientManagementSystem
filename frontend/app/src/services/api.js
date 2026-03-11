@@ -568,6 +568,14 @@ export const adminAPI = {
          body: JSON.stringify({ newRole }),
       });
    },
+
+   // Create a new staff account (ADMIN only)
+   createStaff: async (staffData) => {
+      return apiCall('/admin/staff', {
+         method: 'POST',
+         body: JSON.stringify(staffData),
+      });
+   },
 };
 
 // ============================================

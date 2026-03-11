@@ -25,20 +25,6 @@ describe('CreateAccount Page', () => {
         expect(screen.getByPlaceholderText(/new york, ny/i)).toBeInTheDocument(); // Address
     });
 
-    test('switches to doctor form when doctor role selected', async () => {
-        render(<CreateAccount />);
-
-        const doctorButton = screen.getByText(/doctor \/ staff/i);
-        fireEvent.click(doctorButton);
-
-        // Doctor specific fields should appear
-        expect(screen.getByPlaceholderText(/lic-12345/i)).toBeInTheDocument();
-        expect(screen.getByPlaceholderText(/cardiology/i)).toBeInTheDocument();
-
-        // Patient fields should disappear
-        expect(screen.queryByText(/date of birth/i)).not.toBeInTheDocument();
-    });
-
     test('shows error when passwords do not match', async () => {
         render(<CreateAccount />);
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, AlertCircle, FileText, LayoutDashboard } from 'lucide-react';
+import { Users, AlertCircle, FileText, LayoutDashboard, UserPlus } from 'lucide-react';
 
 import SystemOverview from './components/SystemOverview';
 import UserManagement from './components/UserManagement';
@@ -8,6 +8,7 @@ import IncidentManagement from './components/IncidentManagement';
 import AuditLogs from './components/AuditLogs';
 import SystemHealth from './components/SystemHealth';
 import AppointmentApprovalQueue from '../../components/admin/AppointmentApprovalQueue';
+import StaffAccountCreation from './components/StaffAccountCreation';
 
 const AdminDashboard = () => {
    const [activeTab, setActiveTab] = useState('overview');
@@ -36,6 +37,8 @@ const AdminDashboard = () => {
             return <div className="animate-fade-in"><IncidentManagement /></div>;
          case 'audit':
             return <div className="animate-fade-in"><AuditLogs /></div>;
+         case 'create-staff':
+            return <div className="animate-fade-in"><StaffAccountCreation /></div>;
          default:
             return <SystemOverview />;
       }
@@ -79,6 +82,7 @@ const AdminDashboard = () => {
                <TabButton id="overview" label="Overview" icon={LayoutDashboard} />
                <TabButton id="appointments" label="Appointment Approvals" icon={AlertCircle} />
                <TabButton id="users" label="User Management" icon={Users} />
+               <TabButton id="create-staff" label="Create Staff Account" icon={UserPlus} />
                <TabButton id="incidents" label="Incidents" icon={AlertCircle} />
                <TabButton id="audit" label="Audit Logs" icon={FileText} />
             </div>

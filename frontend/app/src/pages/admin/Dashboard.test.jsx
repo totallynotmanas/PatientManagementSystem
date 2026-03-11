@@ -31,6 +31,7 @@ jest.mock('lucide-react', () => ({
    Server: () => <div data-testid="icon-server" />,
    Database: () => <div data-testid="icon-database" />,
    Cpu: () => <div data-testid="icon-cpu" />,
+   UserPlus: () => <div data-testid="icon-user-plus" />,
 }));
 
 describe('AdminDashboard', () => {

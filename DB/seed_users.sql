@@ -362,6 +362,503 @@ VALUES
     ('riyomen.mikey@gmail.com', 'LAB_TEST_ORDERED',   '203.0.113.11', 'test=Serum IgE patient=diyabhat2005@gmail.com',        NOW() - INTERVAL '13 days'),
     ('2004arjunk@gmail.com',    'LAB_TEST_ORDERED',   '203.0.113.12', 'test=Lipid Panel patient=editzzz.ani@gmail.com',       NOW() - INTERVAL '20 days');
 
+-- =================================================================================
+-- ADDITIONS — New Doctor (Himabindu Prasad) + 10 New Patients
+-- Password for ALL new users: SecurePassword2024 (same hash as above)
+-- =================================================================================
+
+-- ---------------------------------------------------------------------------------
+-- A. NEW DOCTOR LOGIN
+-- ---------------------------------------------------------------------------------
+
+INSERT INTO login (email, password_hash, role, is_active, is_verified, two_factor_enabled)
+VALUES (
+    'himabindu9979@gmail.com',
+    '$argon2id$v=19$m=4096,t=3,p=1$Vhabqz80TH4fFH9ehhbWKw$wBgy4sxJmmj3WLPlzGQLbqK9dEJbnslWc/J7xbwVmQ0',
+    'DOCTOR', TRUE, TRUE, TRUE
+);
+
+-- ---------------------------------------------------------------------------------
+-- B. NEW DOCTOR PROFILE
+-- ---------------------------------------------------------------------------------
+
+INSERT INTO doctor_profiles (user_id, first_name, last_name, specialty, department, contact_number, shift_start_time, shift_end_time, slot_duration_minutes)
+SELECT user_id, 'Himabindu', 'Prasad', 'Pediatrics', 'Pediatrics', '555-1003', '09:00:00', '17:00:00', 30
+FROM login WHERE email = 'himabindu9979@gmail.com';
+
+-- Working days Mon–Fri
+INSERT INTO doctor_working_days (doctor_profile_id, working_days)
+SELECT dp.profile_id, day
+FROM doctor_profiles dp
+JOIN login l ON dp.user_id = l.user_id,
+LATERAL (VALUES ('MONDAY'), ('TUESDAY'), ('WEDNESDAY'), ('THURSDAY'), ('FRIDAY')) AS days(day)
+WHERE l.email = 'himabindu9979@gmail.com';
+
+-- ---------------------------------------------------------------------------------
+-- C. NEW PATIENT LOGINS (10 patients)
+-- ---------------------------------------------------------------------------------
+
+INSERT INTO login (email, password_hash, role, is_active, is_verified, two_factor_enabled)
+VALUES
+    ('john.doe.patient@gmail.com',
+     '$argon2id$v=19$m=4096,t=3,p=1$Vhabqz80TH4fFH9ehhbWKw$wBgy4sxJmmj3WLPlzGQLbqK9dEJbnslWc/J7xbwVmQ0',
+     'PATIENT', TRUE, TRUE, FALSE),
+    ('priya.sharma.health@gmail.com',
+     '$argon2id$v=19$m=4096,t=3,p=1$Vhabqz80TH4fFH9ehhbWKw$wBgy4sxJmmj3WLPlzGQLbqK9dEJbnslWc/J7xbwVmQ0',
+     'PATIENT', TRUE, TRUE, FALSE),
+    ('michael.chen.care@gmail.com',
+     '$argon2id$v=19$m=4096,t=3,p=1$Vhabqz80TH4fFH9ehhbWKw$wBgy4sxJmmj3WLPlzGQLbqK9dEJbnslWc/J7xbwVmQ0',
+     'PATIENT', TRUE, TRUE, FALSE),
+    ('sarah.johnson.med@gmail.com',
+     '$argon2id$v=19$m=4096,t=3,p=1$Vhabqz80TH4fFH9ehhbWKw$wBgy4sxJmmj3WLPlzGQLbqK9dEJbnslWc/J7xbwVmQ0',
+     'PATIENT', TRUE, TRUE, FALSE),
+    ('ravi.kumar.patient@gmail.com',
+     '$argon2id$v=19$m=4096,t=3,p=1$Vhabqz80TH4fFH9ehhbWKw$wBgy4sxJmmj3WLPlzGQLbqK9dEJbnslWc/J7xbwVmQ0',
+     'PATIENT', TRUE, TRUE, FALSE),
+    ('emma.wilson.health@gmail.com',
+     '$argon2id$v=19$m=4096,t=3,p=1$Vhabqz80TH4fFH9ehhbWKw$wBgy4sxJmmj3WLPlzGQLbqK9dEJbnslWc/J7xbwVmQ0',
+     'PATIENT', TRUE, TRUE, FALSE),
+    ('carlos.garcia.pt@gmail.com',
+     '$argon2id$v=19$m=4096,t=3,p=1$Vhabqz80TH4fFH9ehhbWKw$wBgy4sxJmmj3WLPlzGQLbqK9dEJbnslWc/J7xbwVmQ0',
+     'PATIENT', TRUE, TRUE, FALSE),
+    ('amara.osei.patient@gmail.com',
+     '$argon2id$v=19$m=4096,t=3,p=1$Vhabqz80TH4fFH9ehhbWKw$wBgy4sxJmmj3WLPlzGQLbqK9dEJbnslWc/J7xbwVmQ0',
+     'PATIENT', TRUE, TRUE, FALSE),
+    ('lisa.zhang.care@gmail.com',
+     '$argon2id$v=19$m=4096,t=3,p=1$Vhabqz80TH4fFH9ehhbWKw$wBgy4sxJmmj3WLPlzGQLbqK9dEJbnslWc/J7xbwVmQ0',
+     'PATIENT', TRUE, TRUE, FALSE),
+    ('david.brown.health@gmail.com',
+     '$argon2id$v=19$m=4096,t=3,p=1$Vhabqz80TH4fFH9ehhbWKw$wBgy4sxJmmj3WLPlzGQLbqK9dEJbnslWc/J7xbwVmQ0',
+     'PATIENT', TRUE, TRUE, FALSE);
+
+-- ---------------------------------------------------------------------------------
+-- D. NEW PATIENT PROFILES
+-- Distributed: Dr. Mikey (4), Dr. Arjun (3), Dr. Himabindu (3)
+-- All assigned to nurse abhirambikkina@gmail.com
+-- ---------------------------------------------------------------------------------
+
+-- John Doe → Dr. Mikey
+INSERT INTO patient_profiles (user_id, first_name, last_name, date_of_birth, gender, contact_number, address, medical_history, assigned_doctor_id, assigned_nurse_id)
+SELECT pl.user_id, 'John', 'Doe', '1985-03-22', 'Male', '555-2003', '45 Oak Ave, Brisbane',
+    'Type 2 Diabetes — well controlled on metformin. Annual review required.',
+    (SELECT user_id FROM login WHERE email = 'riyomen.mikey@gmail.com'),
+    (SELECT user_id FROM login WHERE email = 'abhirambikkina@gmail.com')
+FROM login pl WHERE pl.email = 'john.doe.patient@gmail.com';
+
+-- Priya Sharma → Dr. Arjun
+INSERT INTO patient_profiles (user_id, first_name, last_name, date_of_birth, gender, contact_number, address, medical_history, assigned_doctor_id, assigned_nurse_id)
+SELECT pl.user_id, 'Priya', 'Sharma', '1990-07-14', 'Female', '555-2004', '33 Jasmine Rd, Perth',
+    'No chronic illness. Occasional migraines. Vitamin D deficiency.',
+    (SELECT user_id FROM login WHERE email = '2004arjunk@gmail.com'),
+    (SELECT user_id FROM login WHERE email = 'abhirambikkina@gmail.com')
+FROM login pl WHERE pl.email = 'priya.sharma.health@gmail.com';
+
+-- Michael Chen → Dr. Himabindu
+INSERT INTO patient_profiles (user_id, first_name, last_name, date_of_birth, gender, contact_number, address, medical_history, assigned_doctor_id, assigned_nurse_id)
+SELECT pl.user_id, 'Michael', 'Chen', '1978-11-30', 'Male', '555-2005', '17 Maple St, Adelaide',
+    'Asthma — mild intermittent. Uses salbutamol PRN. Non-smoker.',
+    (SELECT user_id FROM login WHERE email = 'himabindu9979@gmail.com'),
+    (SELECT user_id FROM login WHERE email = 'abhirambikkina@gmail.com')
+FROM login pl WHERE pl.email = 'michael.chen.care@gmail.com';
+
+-- Sarah Johnson → Dr. Mikey
+INSERT INTO patient_profiles (user_id, first_name, last_name, date_of_birth, gender, contact_number, address, medical_history, assigned_doctor_id, assigned_nurse_id)
+SELECT pl.user_id, 'Sarah', 'Johnson', '1995-01-08', 'Female', '555-2006', '29 Elm Close, Sydney',
+    'Hypothyroidism — on levothyroxine 50mcg daily.',
+    (SELECT user_id FROM login WHERE email = 'riyomen.mikey@gmail.com'),
+    (SELECT user_id FROM login WHERE email = 'abhirambikkina@gmail.com')
+FROM login pl WHERE pl.email = 'sarah.johnson.med@gmail.com';
+
+-- Ravi Kumar → Dr. Arjun
+INSERT INTO patient_profiles (user_id, first_name, last_name, date_of_birth, gender, contact_number, address, medical_history, assigned_doctor_id, assigned_nurse_id)
+SELECT pl.user_id, 'Ravi', 'Kumar', '1970-05-19', 'Male', '555-2007', '8 Garden Blvd, Melbourne',
+    'Stage 1 Hypertension. High cholesterol. On rosuvastatin 10mg.',
+    (SELECT user_id FROM login WHERE email = '2004arjunk@gmail.com'),
+    (SELECT user_id FROM login WHERE email = 'abhirambikkina@gmail.com')
+FROM login pl WHERE pl.email = 'ravi.kumar.patient@gmail.com';
+
+-- Emma Wilson → Dr. Himabindu
+INSERT INTO patient_profiles (user_id, first_name, last_name, date_of_birth, gender, contact_number, address, medical_history, assigned_doctor_id, assigned_nurse_id)
+SELECT pl.user_id, 'Emma', 'Wilson', '2001-09-03', 'Female', '555-2008', '52 Cedar Lane, Canberra',
+    'Iron deficiency anaemia. On ferrous sulfate supplementation.',
+    (SELECT user_id FROM login WHERE email = 'himabindu9979@gmail.com'),
+    (SELECT user_id FROM login WHERE email = 'abhirambikkina@gmail.com')
+FROM login pl WHERE pl.email = 'emma.wilson.health@gmail.com';
+
+-- Carlos Garcia → Dr. Mikey
+INSERT INTO patient_profiles (user_id, first_name, last_name, date_of_birth, gender, contact_number, address, medical_history, assigned_doctor_id, assigned_nurse_id)
+SELECT pl.user_id, 'Carlos', 'Garcia', '1983-12-11', 'Male', '555-2009', '14 Pines Rd, Darwin',
+    'GERD — on pantoprazole 40mg. No other conditions.',
+    (SELECT user_id FROM login WHERE email = 'riyomen.mikey@gmail.com'),
+    (SELECT user_id FROM login WHERE email = 'abhirambikkina@gmail.com')
+FROM login pl WHERE pl.email = 'carlos.garcia.pt@gmail.com';
+
+-- Amara Osei → Dr. Arjun
+INSERT INTO patient_profiles (user_id, first_name, last_name, date_of_birth, gender, contact_number, address, medical_history, assigned_doctor_id, assigned_nurse_id)
+SELECT pl.user_id, 'Amara', 'Osei', '1988-04-27', 'Female', '555-2010', '91 Willow Dr, Hobart',
+    'Pre-diabetic. BMI 28. Diet and exercise plan in place.',
+    (SELECT user_id FROM login WHERE email = '2004arjunk@gmail.com'),
+    (SELECT user_id FROM login WHERE email = 'abhirambikkina@gmail.com')
+FROM login pl WHERE pl.email = 'amara.osei.patient@gmail.com';
+
+-- Lisa Zhang → Dr. Himabindu
+INSERT INTO patient_profiles (user_id, first_name, last_name, date_of_birth, gender, contact_number, address, medical_history, assigned_doctor_id, assigned_nurse_id)
+SELECT pl.user_id, 'Lisa', 'Zhang', '1975-08-16', 'Female', '555-2011', '66 Birch Ct, Gold Coast',
+    'Rheumatoid arthritis — on methotrexate 15mg weekly. Regular liver function monitoring.',
+    (SELECT user_id FROM login WHERE email = 'himabindu9979@gmail.com'),
+    (SELECT user_id FROM login WHERE email = 'abhirambikkina@gmail.com')
+FROM login pl WHERE pl.email = 'lisa.zhang.care@gmail.com';
+
+-- David Brown → Dr. Mikey
+INSERT INTO patient_profiles (user_id, first_name, last_name, date_of_birth, gender, contact_number, address, medical_history, assigned_doctor_id, assigned_nurse_id)
+SELECT pl.user_id, 'David', 'Brown', '1962-02-28', 'Male', '555-2012', '3 Rosewood Ave, Newcastle',
+    'COPD — mild. Ex-smoker. On tiotropium inhaler. Annual spirometry required.',
+    (SELECT user_id FROM login WHERE email = 'riyomen.mikey@gmail.com'),
+    (SELECT user_id FROM login WHERE email = 'abhirambikkina@gmail.com')
+FROM login pl WHERE pl.email = 'david.brown.health@gmail.com';
+
+-- ---------------------------------------------------------------------------------
+-- E. APPOINTMENTS for new patients
+-- ---------------------------------------------------------------------------------
+
+-- John Doe — SCHEDULED with Dr. Mikey
+INSERT INTO appointments (patient_profile_id, doctor_id, appointment_date, status, reason_for_visit)
+SELECT pp.profile_id, l.user_id, NOW() + INTERVAL '7 days', 'SCHEDULED', 'Diabetes annual review'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'john.doe.patient@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- Priya Sharma — PENDING_APPROVAL with Dr. Arjun
+INSERT INTO appointments (patient_profile_id, doctor_id, appointment_date, status, reason_for_visit)
+SELECT pp.profile_id, l.user_id, NOW() + INTERVAL '4 days', 'PENDING_APPROVAL', 'Migraine follow-up'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'priya.sharma.health@gmail.com',
+login l WHERE l.email = '2004arjunk@gmail.com';
+
+-- Michael Chen — SCHEDULED with Dr. Himabindu
+INSERT INTO appointments (patient_profile_id, doctor_id, appointment_date, status, reason_for_visit)
+SELECT pp.profile_id, l.user_id, NOW() + INTERVAL '6 days', 'SCHEDULED', 'Asthma routine review'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'michael.chen.care@gmail.com',
+login l WHERE l.email = 'himabindu9979@gmail.com';
+
+-- Sarah Johnson — COMPLETED past with Dr. Mikey
+INSERT INTO appointments (patient_profile_id, doctor_id, appointment_date, status, reason_for_visit, doctor_notes)
+SELECT pp.profile_id, l.user_id, NOW() - INTERVAL '10 days', 'COMPLETED', 'Thyroid function review',
+    'TSH within normal range. Continue levothyroxine 50mcg. Review in 6 months.'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'sarah.johnson.med@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- Ravi Kumar — SCHEDULED with Dr. Arjun
+INSERT INTO appointments (patient_profile_id, doctor_id, appointment_date, status, reason_for_visit)
+SELECT pp.profile_id, l.user_id, NOW() + INTERVAL '9 days', 'SCHEDULED', 'Blood pressure and cholesterol check'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'ravi.kumar.patient@gmail.com',
+login l WHERE l.email = '2004arjunk@gmail.com';
+
+-- Emma Wilson — COMPLETED past with Dr. Himabindu
+INSERT INTO appointments (patient_profile_id, doctor_id, appointment_date, status, reason_for_visit, doctor_notes)
+SELECT pp.profile_id, l.user_id, NOW() - INTERVAL '7 days', 'COMPLETED', 'Iron deficiency follow-up',
+    'Haemoglobin improving. Continue ferrous sulfate for 2 more months. Recheck CBC.'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'emma.wilson.health@gmail.com',
+login l WHERE l.email = 'himabindu9979@gmail.com';
+
+-- Carlos Garcia — PENDING_APPROVAL with Dr. Mikey
+INSERT INTO appointments (patient_profile_id, doctor_id, appointment_date, status, reason_for_visit)
+SELECT pp.profile_id, l.user_id, NOW() + INTERVAL '2 days', 'PENDING_APPROVAL', 'GERD symptom review'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'carlos.garcia.pt@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- Amara Osei — SCHEDULED with Dr. Arjun
+INSERT INTO appointments (patient_profile_id, doctor_id, appointment_date, status, reason_for_visit)
+SELECT pp.profile_id, l.user_id, NOW() + INTERVAL '11 days', 'SCHEDULED', 'Pre-diabetes lifestyle review'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'amara.osei.patient@gmail.com',
+login l WHERE l.email = '2004arjunk@gmail.com';
+
+-- Lisa Zhang — SCHEDULED with Dr. Himabindu
+INSERT INTO appointments (patient_profile_id, doctor_id, appointment_date, status, reason_for_visit)
+SELECT pp.profile_id, l.user_id, NOW() + INTERVAL '8 days', 'SCHEDULED', 'Rheumatoid arthritis and liver function review'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'lisa.zhang.care@gmail.com',
+login l WHERE l.email = 'himabindu9979@gmail.com';
+
+-- David Brown — COMPLETED past with Dr. Mikey
+INSERT INTO appointments (patient_profile_id, doctor_id, appointment_date, status, reason_for_visit, doctor_notes)
+SELECT pp.profile_id, l.user_id, NOW() - INTERVAL '30 days', 'COMPLETED', 'COPD spirometry review',
+    'FEV1 stable at 72% predicted. Continue tiotropium. Smoking cessation reinforced. Flu vaccine administered.'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'david.brown.health@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- ---------------------------------------------------------------------------------
+-- F. VITAL SIGNS for new patients (recorded by nurse Abhiram Bikkina)
+-- ---------------------------------------------------------------------------------
+
+INSERT INTO vital_signs (patient_profile_id, nurse_id, blood_pressure, heart_rate, temperature, respiratory_rate, oxygen_saturation, weight, height, recorded_at)
+SELECT pp.profile_id, l.user_id, '128/82', 76, 98.6, 16, 98, 82.0, 178, NOW() - INTERVAL '1 day'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'john.doe.patient@gmail.com',
+login l WHERE l.email = 'abhirambikkina@gmail.com';
+
+INSERT INTO vital_signs (patient_profile_id, nurse_id, blood_pressure, heart_rate, temperature, respiratory_rate, oxygen_saturation, weight, height, recorded_at)
+SELECT pp.profile_id, l.user_id, '110/70', 64, 98.4, 14, 99, 58.0, 160, NOW() - INTERVAL '1 day'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'priya.sharma.health@gmail.com',
+login l WHERE l.email = 'abhirambikkina@gmail.com';
+
+INSERT INTO vital_signs (patient_profile_id, nurse_id, blood_pressure, heart_rate, temperature, respiratory_rate, oxygen_saturation, weight, height, recorded_at)
+SELECT pp.profile_id, l.user_id, '122/78', 72, 98.8, 18, 96, 74.0, 172, NOW() - INTERVAL '1 day'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'michael.chen.care@gmail.com',
+login l WHERE l.email = 'abhirambikkina@gmail.com';
+
+INSERT INTO vital_signs (patient_profile_id, nurse_id, blood_pressure, heart_rate, temperature, respiratory_rate, oxygen_saturation, weight, height, recorded_at)
+SELECT pp.profile_id, l.user_id, '115/72', 68, 98.2, 15, 99, 60.0, 165, NOW() - INTERVAL '1 day'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'sarah.johnson.med@gmail.com',
+login l WHERE l.email = 'abhirambikkina@gmail.com';
+
+INSERT INTO vital_signs (patient_profile_id, nurse_id, blood_pressure, heart_rate, temperature, respiratory_rate, oxygen_saturation, weight, height, recorded_at)
+SELECT pp.profile_id, l.user_id, '144/92', 80, 98.7, 17, 97, 88.0, 175, NOW() - INTERVAL '1 day'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'ravi.kumar.patient@gmail.com',
+login l WHERE l.email = 'abhirambikkina@gmail.com';
+
+INSERT INTO vital_signs (patient_profile_id, nurse_id, blood_pressure, heart_rate, temperature, respiratory_rate, oxygen_saturation, weight, height, recorded_at)
+SELECT pp.profile_id, l.user_id, '108/68', 80, 98.0, 15, 99, 54.0, 163, NOW() - INTERVAL '1 day'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'emma.wilson.health@gmail.com',
+login l WHERE l.email = 'abhirambikkina@gmail.com';
+
+INSERT INTO vital_signs (patient_profile_id, nurse_id, blood_pressure, heart_rate, temperature, respiratory_rate, oxygen_saturation, weight, height, recorded_at)
+SELECT pp.profile_id, l.user_id, '126/80', 74, 98.5, 16, 98, 78.0, 180, NOW() - INTERVAL '1 day'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'carlos.garcia.pt@gmail.com',
+login l WHERE l.email = 'abhirambikkina@gmail.com';
+
+INSERT INTO vital_signs (patient_profile_id, nurse_id, blood_pressure, heart_rate, temperature, respiratory_rate, oxygen_saturation, weight, height, recorded_at)
+SELECT pp.profile_id, l.user_id, '130/84', 78, 98.6, 16, 98, 71.0, 168, NOW() - INTERVAL '1 day'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'amara.osei.patient@gmail.com',
+login l WHERE l.email = 'abhirambikkina@gmail.com';
+
+INSERT INTO vital_signs (patient_profile_id, nurse_id, blood_pressure, heart_rate, temperature, respiratory_rate, oxygen_saturation, weight, height, recorded_at)
+SELECT pp.profile_id, l.user_id, '118/74', 70, 98.3, 15, 99, 63.0, 158, NOW() - INTERVAL '1 day'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'lisa.zhang.care@gmail.com',
+login l WHERE l.email = 'abhirambikkina@gmail.com';
+
+INSERT INTO vital_signs (patient_profile_id, nurse_id, blood_pressure, heart_rate, temperature, respiratory_rate, oxygen_saturation, weight, height, recorded_at)
+SELECT pp.profile_id, l.user_id, '132/84', 76, 98.4, 19, 95, 80.0, 175, NOW() - INTERVAL '1 day'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'david.brown.health@gmail.com',
+login l WHERE l.email = 'abhirambikkina@gmail.com';
+
+-- ---------------------------------------------------------------------------------
+-- G. PRESCRIPTIONS for new patients
+-- ---------------------------------------------------------------------------------
+
+-- John Doe — Metformin (Dr. Mikey)
+INSERT INTO prescriptions (patient_profile_id, doctor_id, medication_name, dosage, frequency, duration, special_instructions, status, start_date, end_date, refills_remaining)
+SELECT pp.profile_id, l.user_id, 'Metformin', '500mg', 'Twice daily with meals', '180 days',
+    'Monitor blood glucose weekly. Report any GI side effects.',
+    'ACTIVE', NOW() - INTERVAL '30 days', NOW() + INTERVAL '150 days', 2
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'john.doe.patient@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- Sarah Johnson — Levothyroxine (Dr. Mikey)
+INSERT INTO prescriptions (patient_profile_id, doctor_id, medication_name, dosage, frequency, duration, special_instructions, status, start_date, end_date, refills_remaining)
+SELECT pp.profile_id, l.user_id, 'Levothyroxine', '50mcg', 'Once daily on empty stomach', '365 days',
+    'Take 30 mins before breakfast. Avoid calcium supplements within 4 hours.',
+    'ACTIVE', NOW() - INTERVAL '10 days', NOW() + INTERVAL '355 days', 3
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'sarah.johnson.med@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- Ravi Kumar — Rosuvastatin (Dr. Arjun)
+INSERT INTO prescriptions (patient_profile_id, doctor_id, medication_name, dosage, frequency, duration, special_instructions, status, start_date, end_date, refills_remaining)
+SELECT pp.profile_id, l.user_id, 'Rosuvastatin', '10mg', 'Once daily at night', '90 days',
+    'Monitor LFT every 3 months. Report any muscle pain immediately.',
+    'ACTIVE', NOW() - INTERVAL '15 days', NOW() + INTERVAL '75 days', 1
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'ravi.kumar.patient@gmail.com',
+login l WHERE l.email = '2004arjunk@gmail.com';
+
+-- Emma Wilson — Ferrous Sulfate (Dr. Himabindu)
+INSERT INTO prescriptions (patient_profile_id, doctor_id, medication_name, dosage, frequency, duration, special_instructions, status, start_date, end_date, refills_remaining)
+SELECT pp.profile_id, l.user_id, 'Ferrous Sulfate', '200mg', 'Once daily with orange juice', '60 days',
+    'Take with vitamin C to enhance absorption. May cause dark stools — this is normal.',
+    'ACTIVE', NOW() - INTERVAL '7 days', NOW() + INTERVAL '53 days', 0
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'emma.wilson.health@gmail.com',
+login l WHERE l.email = 'himabindu9979@gmail.com';
+
+-- Carlos Garcia — Pantoprazole (Dr. Mikey)
+INSERT INTO prescriptions (patient_profile_id, doctor_id, medication_name, dosage, frequency, duration, special_instructions, status, start_date, end_date, refills_remaining)
+SELECT pp.profile_id, l.user_id, 'Pantoprazole', '40mg', 'Once daily before breakfast', '30 days',
+    'Take 30 minutes before eating. Avoid spicy foods and late-night meals.',
+    'ACTIVE', NOW() - INTERVAL '5 days', NOW() + INTERVAL '25 days', 1
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'carlos.garcia.pt@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- Lisa Zhang — Methotrexate (Dr. Himabindu)
+INSERT INTO prescriptions (patient_profile_id, doctor_id, medication_name, dosage, frequency, duration, special_instructions, status, start_date, end_date, refills_remaining)
+SELECT pp.profile_id, l.user_id, 'Methotrexate', '15mg', 'Once weekly on Monday', '180 days',
+    'Take with folic acid supplement. Avoid alcohol completely. Monthly LFT monitoring required.',
+    'ACTIVE', NOW() - INTERVAL '20 days', NOW() + INTERVAL '160 days', 2
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'lisa.zhang.care@gmail.com',
+login l WHERE l.email = 'himabindu9979@gmail.com';
+
+-- David Brown — Tiotropium (Dr. Mikey)
+INSERT INTO prescriptions (patient_profile_id, doctor_id, medication_name, dosage, frequency, duration, special_instructions, status, start_date, end_date, refills_remaining)
+SELECT pp.profile_id, l.user_id, 'Tiotropium', '18mcg inhaler', 'Once daily via HandiHaler', '90 days',
+    'Rinse mouth after each dose. Annual spirometry required.',
+    'ACTIVE', NOW() - INTERVAL '30 days', NOW() + INTERVAL '60 days', 1
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'david.brown.health@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- ---------------------------------------------------------------------------------
+-- H. LAB TESTS for new patients
+-- ---------------------------------------------------------------------------------
+
+-- John Doe — HbA1c COMPLETED
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, result_value, unit, reference_range, remarks, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'HbA1c', 'Chemistry', '6.8', '%', '<5.7% normal / 5.7–6.4% pre-diabetic / ≥6.5% diabetic',
+    'Good glycaemic control. Target <7%. Continue current regimen.',
+    'COMPLETED', NOW() - INTERVAL '28 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'john.doe.patient@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- John Doe — Fasting Blood Glucose PENDING
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, remarks, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Fasting Blood Glucose', 'Chemistry',
+    'Pre-appointment glucose check.', 'PENDING', NOW() - INTERVAL '1 day'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'john.doe.patient@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- Ravi Kumar — Lipid Panel COMPLETED
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, result_value, unit, reference_range, remarks, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Lipid Panel', 'Chemistry', 'LDL 145 / HDL 38 / TG 198', 'mg/dL', 'LDL <130 / HDL >40 / TG <150',
+    'Elevated LDL and TG. Started rosuvastatin. Recheck in 3 months.',
+    'COMPLETED', NOW() - INTERVAL '15 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'ravi.kumar.patient@gmail.com',
+login l WHERE l.email = '2004arjunk@gmail.com';
+
+-- Emma Wilson — CBC COMPLETED
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, result_value, unit, reference_range, remarks, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Complete Blood Count', 'Hematology', 'Hb 9.8 / MCV 72 / Ferritin 6', 'g/dL / fL / ng/mL', 'Hb >12 / MCV 80–100 / Ferritin 12–150',
+    'Iron deficiency anaemia confirmed. Iron supplementation commenced.',
+    'COMPLETED', NOW() - INTERVAL '7 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'emma.wilson.health@gmail.com',
+login l WHERE l.email = 'himabindu9979@gmail.com';
+
+-- Lisa Zhang — Liver Function Test COMPLETED
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, result_value, unit, reference_range, remarks, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Liver Function Test', 'Chemistry', 'ALT 28 / AST 31 / ALP 72 / Bilirubin 0.8', 'U/L / U/L / U/L / mg/dL', 'ALT <56 / AST <40 / ALP 44–147 / Bilirubin <1.2',
+    'LFT within normal limits. Safe to continue methotrexate. Repeat in 4 weeks.',
+    'COMPLETED', NOW() - INTERVAL '20 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'lisa.zhang.care@gmail.com',
+login l WHERE l.email = 'himabindu9979@gmail.com';
+
+-- David Brown — Pulmonary Function Test COMPLETED
+INSERT INTO lab_tests (patient_profile_id, ordered_by_id, test_name, test_category, result_value, unit, reference_range, remarks, status, ordered_at)
+SELECT pp.profile_id, l.user_id, 'Pulmonary Function Test', 'Pulmonology', 'FEV1 72% / FVC 85% / FEV1/FVC 0.68', '% predicted / % predicted', 'FEV1 >80% / FVC >80% / FEV1/FVC ≥0.70',
+    'Mild obstructive pattern consistent with COPD GOLD stage 1. Stable from last year.',
+    'COMPLETED', NOW() - INTERVAL '30 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'david.brown.health@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- ---------------------------------------------------------------------------------
+-- I. PATIENT CONSENTS for new patients
+-- ---------------------------------------------------------------------------------
+
+-- Treating doctor → each new patient (ALL access)
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, 'ALL', 'ACTIVE', NOW() - INTERVAL '30 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'john.doe.patient@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, 'ALL', 'ACTIVE', NOW() - INTERVAL '4 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'priya.sharma.health@gmail.com',
+login l WHERE l.email = '2004arjunk@gmail.com';
+
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, 'ALL', 'ACTIVE', NOW() - INTERVAL '6 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'michael.chen.care@gmail.com',
+login l WHERE l.email = 'himabindu9979@gmail.com';
+
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, 'ALL', 'ACTIVE', NOW() - INTERVAL '10 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'sarah.johnson.med@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, 'ALL', 'ACTIVE', NOW() - INTERVAL '15 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'ravi.kumar.patient@gmail.com',
+login l WHERE l.email = '2004arjunk@gmail.com';
+
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, 'ALL', 'ACTIVE', NOW() - INTERVAL '7 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'emma.wilson.health@gmail.com',
+login l WHERE l.email = 'himabindu9979@gmail.com';
+
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, 'ALL', 'ACTIVE', NOW() - INTERVAL '5 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'carlos.garcia.pt@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, 'ALL', 'ACTIVE', NOW() - INTERVAL '11 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'amara.osei.patient@gmail.com',
+login l WHERE l.email = '2004arjunk@gmail.com';
+
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, 'ALL', 'ACTIVE', NOW() - INTERVAL '20 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'lisa.zhang.care@gmail.com',
+login l WHERE l.email = 'himabindu9979@gmail.com';
+
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, 'ALL', 'ACTIVE', NOW() - INTERVAL '30 days'
+FROM patient_profiles pp JOIN login pl ON pp.user_id = pl.user_id AND pl.email = 'david.brown.health@gmail.com',
+login l WHERE l.email = 'riyomen.mikey@gmail.com';
+
+-- Nurse Abhiram → all 10 new patients (VITAL_SIGNS, MEDICAL_RECORDS, PRESCRIPTIONS)
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, unnested.consent_type, 'ACTIVE', NOW() - INTERVAL '1 day'
+FROM patient_profiles pp
+JOIN login pl ON pp.user_id = pl.user_id,
+login l,
+(VALUES ('VITAL_SIGNS'), ('MEDICAL_RECORDS'), ('PRESCRIPTIONS')) AS unnested(consent_type)
+WHERE pl.email IN (
+    'john.doe.patient@gmail.com', 'priya.sharma.health@gmail.com', 'michael.chen.care@gmail.com',
+    'sarah.johnson.med@gmail.com', 'ravi.kumar.patient@gmail.com', 'emma.wilson.health@gmail.com',
+    'carlos.garcia.pt@gmail.com', 'amara.osei.patient@gmail.com', 'lisa.zhang.care@gmail.com',
+    'david.brown.health@gmail.com'
+) AND l.email = 'abhirambikkina@gmail.com';
+
+-- Lab Tech Abhiramamrita → all 10 new patients (LAB_RESULTS access)
+INSERT INTO patient_consents (patient_id, granted_to_id, consent_type, status, granted_at)
+SELECT pp.profile_id, l.user_id, 'LAB_RESULTS', 'ACTIVE', NOW() - INTERVAL '1 day'
+FROM patient_profiles pp
+JOIN login pl ON pp.user_id = pl.user_id,
+login l
+WHERE pl.email IN (
+    'john.doe.patient@gmail.com', 'priya.sharma.health@gmail.com', 'michael.chen.care@gmail.com',
+    'sarah.johnson.med@gmail.com', 'ravi.kumar.patient@gmail.com', 'emma.wilson.health@gmail.com',
+    'carlos.garcia.pt@gmail.com', 'amara.osei.patient@gmail.com', 'lisa.zhang.care@gmail.com',
+    'david.brown.health@gmail.com'
+) AND l.email = 'abhiramamrita@gmail.com';
+
+-- ---------------------------------------------------------------------------------
+-- J. AUDIT LOGS for new users
+-- ---------------------------------------------------------------------------------
+
+INSERT INTO audit_logs (email, action, ip_address, details, timestamp)
+VALUES
+    ('himabindu9979@gmail.com',       'LOGIN_SUCCESS',        '203.0.113.20', 'method=password+2fa',                                               NOW() - INTERVAL '1 hour'),
+    ('john.doe.patient@gmail.com',    'LOGIN_SUCCESS',        '203.0.113.21', 'method=password',                                                   NOW() - INTERVAL '1 day'),
+    ('priya.sharma.health@gmail.com', 'LOGIN_SUCCESS',        '203.0.113.22', 'method=password',                                                   NOW() - INTERVAL '1 day'),
+    ('michael.chen.care@gmail.com',   'LOGIN_SUCCESS',        '203.0.113.23', 'method=password',                                                   NOW() - INTERVAL '1 day'),
+    ('sarah.johnson.med@gmail.com',   'LOGIN_SUCCESS',        '203.0.113.24', 'method=password',                                                   NOW() - INTERVAL '1 day'),
+    ('ravi.kumar.patient@gmail.com',  'LOGIN_SUCCESS',        '203.0.113.25', 'method=password',                                                   NOW() - INTERVAL '1 day'),
+    ('emma.wilson.health@gmail.com',  'LOGIN_SUCCESS',        '203.0.113.26', 'method=password',                                                   NOW() - INTERVAL '1 day'),
+    ('carlos.garcia.pt@gmail.com',    'LOGIN_SUCCESS',        '203.0.113.27', 'method=password',                                                   NOW() - INTERVAL '1 day'),
+    ('amara.osei.patient@gmail.com',  'LOGIN_SUCCESS',        '203.0.113.28', 'method=password',                                                   NOW() - INTERVAL '1 day'),
+    ('lisa.zhang.care@gmail.com',     'LOGIN_SUCCESS',        '203.0.113.29', 'method=password',                                                   NOW() - INTERVAL '1 day'),
+    ('david.brown.health@gmail.com',  'LOGIN_SUCCESS',        '203.0.113.30', 'method=password',                                                   NOW() - INTERVAL '1 day'),
+    ('himabindu9979@gmail.com',       'PRESCRIPTION_CREATED', '203.0.113.20', 'medication=Ferrous Sulfate patient=emma.wilson.health@gmail.com',    NOW() - INTERVAL '7 days'),
+    ('himabindu9979@gmail.com',       'PRESCRIPTION_CREATED', '203.0.113.20', 'medication=Methotrexate patient=lisa.zhang.care@gmail.com',          NOW() - INTERVAL '20 days'),
+    ('himabindu9979@gmail.com',       'LAB_TEST_ORDERED',     '203.0.113.20', 'test=CBC patient=emma.wilson.health@gmail.com',                      NOW() - INTERVAL '7 days'),
+    ('himabindu9979@gmail.com',       'LAB_TEST_ORDERED',     '203.0.113.20', 'test=Liver Function Test patient=lisa.zhang.care@gmail.com',         NOW() - INTERVAL '20 days'),
+    ('riyomen.mikey@gmail.com',       'PRESCRIPTION_CREATED', '203.0.113.11', 'medication=Metformin patient=john.doe.patient@gmail.com',            NOW() - INTERVAL '30 days'),
+    ('riyomen.mikey@gmail.com',       'PRESCRIPTION_CREATED', '203.0.113.11', 'medication=Levothyroxine patient=sarah.johnson.med@gmail.com',       NOW() - INTERVAL '10 days'),
+    ('riyomen.mikey@gmail.com',       'PRESCRIPTION_CREATED', '203.0.113.11', 'medication=Tiotropium patient=david.brown.health@gmail.com',         NOW() - INTERVAL '30 days'),
+    ('riyomen.mikey@gmail.com',       'LAB_TEST_ORDERED',     '203.0.113.11', 'test=HbA1c patient=john.doe.patient@gmail.com',                     NOW() - INTERVAL '28 days'),
+    ('2004arjunk@gmail.com',          'PRESCRIPTION_CREATED', '203.0.113.12', 'medication=Rosuvastatin patient=ravi.kumar.patient@gmail.com',       NOW() - INTERVAL '15 days'),
+    ('2004arjunk@gmail.com',          'LAB_TEST_ORDERED',     '203.0.113.12', 'test=Lipid Panel patient=ravi.kumar.patient@gmail.com',              NOW() - INTERVAL '15 days');
+
 -- ---------------------------------------------------------------------------------
 -- 12. PATIENT CONSENTS
 --     Grant staff access to patient data so dashboards are not blocked.
